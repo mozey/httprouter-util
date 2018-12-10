@@ -1,8 +1,10 @@
 package main
 
 import (
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
@@ -25,6 +27,7 @@ func RespondJSON(w http.ResponseWriter, r *http.Request, i interface{}) {
 	if err != nil {
 		log.Panic().Err(err)
 	}
+	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, string(j))
 }
 
@@ -43,10 +46,6 @@ func Hello(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
 }
 
-func NotFound(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	//fmt.Fp
-}
-
 func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
 	w.WriteHeader(http.StatusInternalServerError)
 	RespondJSON(w, r, Response{
@@ -58,12 +57,20 @@ func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
 	}
 }
 
+func NotFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+	RespondJSON(w, r, map[string]interface{}{
+		"message": r.URL.Path,
+	})
+}
+
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Log the request
 		log.Info().
 			Str("method", r.Method).
-			Str("request_uri", string(r.RequestURI))
+			Str("request_uri", string(r.RequestURI)).
+			Msg("-")
 
 		// Call the next handler
 		next.ServeHTTP(w, r)
@@ -72,6 +79,17 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Skip auth for public paths
+		path := r.URL.Path
+		switch path {
+		case
+			"/",
+			"/panic":
+			// Call the next handler
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		// Authenticate
 		token := r.URL.Query().Get("token")
 		if token == "123" {
@@ -97,8 +115,8 @@ func main() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	if dev {
 		log.Logger = log.Output(zerolog.ConsoleWriter{
-			Out: os.Stderr,
-			NoColor: false,
+			Out:        os.Stderr,
+			NoColor:    false,
 			TimeFormat: time.RFC3339,
 		})
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -107,14 +125,18 @@ func main() {
 	// Router
 	router := httprouter.New()
 	router.PanicHandler = PanicHandler
+	router.NotFound = http.HandlerFunc(NotFound)
+
+	// Routes
 	router.HandlerFunc("GET", "/", Index)
 	router.HandlerFunc("GET", "/panic", Panic)
 	router.HandlerFunc("GET", "/hello/:name", Hello)
 
 	// Middleware
-	handler := cors.Default().Handler(router)
+	handler := cors.Default().Handler(router) // WARNING Allows all origins
 	handler = LoggingMiddleware(handler)
 	handler = AuthMiddleware(handler)
+	handler = handlers.CompressHandlerLevel(handler, gzip.BestSpeed)
 
 	listen := ":8080"
 	if dev {
@@ -128,4 +150,3 @@ func main() {
 	log.Info().Msgf("listening on %s", listen)
 	log.Fatal().Err(http.ListenAndServe(listen, handler))
 }
-
