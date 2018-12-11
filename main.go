@@ -158,7 +158,8 @@ func main() {
 	router.HandlerFunc("GET", "/hello/:name", Hello)
 
 	// Middleware
-	handler := cors.Default().Handler(router) // WARNING Allows all origins
+	var handler http.Handler = router
+	handler = cors.Default().Handler(router) // WARNING Allows all origins
 	handler = LoggingMiddleware(handler)
 	handler = AuthMiddleware(handler)
 	handler = handlers.CompressHandlerLevel(handler, gzip.BestSpeed)
