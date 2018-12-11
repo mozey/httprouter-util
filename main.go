@@ -9,6 +9,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/segmentio/ksuid"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -32,8 +33,8 @@ func RespondJSON(w http.ResponseWriter, r *http.Request, i interface{}) {
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	RespondJSON(w, r, map[string]interface{}{
-		"message": "Welcome",
+	RespondJSON(w, r, Response{
+		Message: "Welcome",
 	})
 }
 
@@ -42,8 +43,8 @@ func Panic(w http.ResponseWriter, r *http.Request) {
 }
 
 func Hello(w http.ResponseWriter, r *http.Request) {
-	ps := httprouter.ParamsFromContext(r.Context())
-	fmt.Fprintf(w, "hello, %s!\n", ps.ByName("name"))
+	params := httprouter.ParamsFromContext(r.Context())
+	fmt.Fprintf(w, "hello, %s!\n", params.ByName("name"))
 }
 
 func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
@@ -59,8 +60,32 @@ func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-	RespondJSON(w, r, map[string]interface{}{
-		"message": r.URL.Path,
+	RespondJSON(w, r, Response{
+		Message: r.URL.Path,
+	})
+}
+
+func RequestIDMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const headerXRequestID = "X-Request-ID"
+
+		// Use existing header if available
+		requestID := r.Header.Get(headerXRequestID)
+
+		if requestID == "" {
+			// Generate new id
+			id, err := ksuid.NewRandom()
+			if err != nil {
+				requestID = err.Error()
+			}
+			requestID = id.String()
+		}
+
+		// Set header
+		w.Header().Set(headerXRequestID, requestID)
+
+		// Call the next handler
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -137,6 +162,7 @@ func main() {
 	handler = LoggingMiddleware(handler)
 	handler = AuthMiddleware(handler)
 	handler = handlers.CompressHandlerLevel(handler, gzip.BestSpeed)
+	handler = RequestIDMiddleware(handler)
 
 	listen := ":8080"
 	if dev {
