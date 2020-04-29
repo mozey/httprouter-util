@@ -46,6 +46,8 @@ Make requests with [httpie](https://httpie.org/)
     
     http localhost:8118/index.html
     
+    http localhost:8118/www/data/go.txt
+    
     http localhost:8118/proxy
     
 View static content in your browser,
