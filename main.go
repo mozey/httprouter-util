@@ -2,179 +2,120 @@ package main
 
 import (
 	"compress/gzip"
-	"encoding/json"
 	"fmt"
-	"github.com/gorilla/handlers"
+	gh "github.com/gorilla/handlers"
 	"github.com/julienschmidt/httprouter"
+	"github.com/mozey/httprouter-example/pkg/config"
+	"github.com/mozey/httprouter-example/pkg/logutil"
+	"github.com/mozey/httprouter-example/pkg/response"
 	"github.com/rs/cors"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/segmentio/ksuid"
+	"io/ioutil"
 	"net/http"
 	"os"
-	"runtime/debug"
-	"time"
 )
 
-var dev bool
-
-type Response struct {
-	Message string `json:"message"`
+type Handler struct {
+	Config *config.Config
 }
 
-// RespondJSON can be used by route handler to respond to requests
-func RespondJSON(w http.ResponseWriter, r *http.Request, i interface{}) {
-	j, err := json.MarshalIndent(i, "", "    ")
+func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
+	f, err := os.Open("index.html")
 	if err != nil {
-		log.Panic().Err(err)
+		response.JSON(http.StatusInternalServerError, w, r, response.Response{
+			Message: "Index page not found",
+		})
 	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = fmt.Fprint(w, string(j))
+	w.WriteHeader(http.StatusOK)
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		response.JSON(http.StatusInternalServerError, w, r, response.Response{
+			Message: "Error reading index page",
+		})
+	}
+	_, _ = fmt.Fprintf(w, string(b))
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	RespondJSON(w, r, Response{
+func (h *Handler) API(w http.ResponseWriter, r *http.Request) {
+	response.JSON(http.StatusOK, w, r, response.Response{
 		Message: "Welcome",
 	})
 }
 
-func Panic(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Panic(w http.ResponseWriter, r *http.Request) {
 	panic("Oops!")
 }
 
-func Hello(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Hello(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
+	// DANGER Don't use the response helper.
+	// Write headers and response right here in the handler
+	w.WriteHeader(http.StatusAccepted)
 	_, _ = fmt.Fprintf(w, "hello, %s!\n", params.ByName("name"))
 }
 
-func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
-	w.WriteHeader(http.StatusInternalServerError)
-	RespondJSON(w, r, Response{
-		Message: fmt.Sprintf("%s", rcv),
-	})
-	log.Error().Msg(rcv.(string))
-	if dev {
-		debug.PrintStack()
-	}
-}
-
-func NotFound(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
-	RespondJSON(w, r, Response{
-		Message: r.URL.Path,
+func (h *Handler) NotFound(w http.ResponseWriter, r *http.Request) {
+	response.JSON(http.StatusNotFound, w, r, response.Response{
+		Message: fmt.Sprintf("%v not found", r.URL.Path),
 	})
 }
 
-func RequestIDMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		const headerXRequestID = "X-Request-ID"
-
-		// Use existing header if available
-		requestID := r.Header.Get(headerXRequestID)
-
-		if requestID == "" {
-			// Generate new id
-			id, err := ksuid.NewRandom()
-			if err != nil {
-				requestID = err.Error()
-			} else {
-				requestID = id.String()
-			}
-		}
-
-		// Set header
-		w.Header().Set(headerXRequestID, requestID)
-
-		// Call the next handler
-		next.ServeHTTP(w, r)
-	})
-}
-
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Log the request
-		log.Info().
-			Str("method", r.Method).
-			Str("request_uri", string(r.RequestURI)).
-			Msg("-")
-
-		// Call the next handler
-		next.ServeHTTP(w, r)
-	})
-}
-
-func AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Skip auth for public paths
-		path := r.URL.Path
-		switch path {
-		case
-			"/",
-			"/panic":
-			// Call the next handler
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		// Authenticate
-		token := r.URL.Query().Get("token")
-		if token == "123" {
-			// Call the next handler
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		w.WriteHeader(http.StatusUnauthorized)
-		msg := "Invalid or missing token"
-		RespondJSON(w, r, Response{
-			Message: msg,
-		})
-		log.Error().Msg(msg)
+func (h *Handler) Proxy(w http.ResponseWriter, r *http.Request) {
+	response.JSON(http.StatusNotImplemented, w, r, map[string]string{
+		"Message": "Not implemented",
+		"Proxy": h.Config.Proxy(),
 	})
 }
 
 func main() {
-	dev = true
+	// Handler
+	h := Handler{}
+	h.Config = config.New()
 
 	// Logger
-	zerolog.TimeFieldFormat = time.RFC3339
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if dev {
-		log.Logger = log.Output(zerolog.ConsoleWriter{
-			Out:        os.Stderr,
-			NoColor:    false,
-			TimeFormat: time.RFC3339,
-		})
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	}
+	logutil.SetupLogger(h.Config.Dev() == "true")
 
 	// Router
 	router := httprouter.New()
-	router.PanicHandler = PanicHandler
-	router.NotFound = http.HandlerFunc(NotFound)
+	router.PanicHandler = PanicHandler(&PanicHandlerOptions{
+		PrintStack: h.Config.Dev() == "true",
+	})
+	router.NotFound = http.HandlerFunc(h.NotFound)
 
 	// Routes
-	router.HandlerFunc("GET", "/", Index)
-	router.HandlerFunc("GET", "/panic", Panic)
-	router.HandlerFunc("GET", "/hello/:name", Hello)
+	// Index page requires special routes
+	router.HandlerFunc("GET", "/", h.Index)
+	router.HandlerFunc("GET", "/index.html", h.Index)
+	// Misc
+	router.HandlerFunc("GET", "/api", h.API)
+	router.HandlerFunc("GET", "/panic", h.Panic)
+	router.HandlerFunc("GET", "/hello/:name", h.Hello)
+	// TODO Proxy
+	router.HandlerFunc("GET", "/proxy", h.Proxy)
+	router.HandlerFunc("GET", "/proxy/*filepath", h.Proxy)
+	// Static content
+	router.ServeFiles("/www/*filepath", http.Dir("www"))
 
 	// Middleware
 	var handler http.Handler = router
-	handler = cors.Default().Handler(router) // WARNING Allows all origins
-	handler = LoggingMiddleware(handler)
-	handler = AuthMiddleware(handler)
-	handler = handlers.CompressHandlerLevel(handler, gzip.BestSpeed)
+	// WARNING Allows all origins
+	handler = cors.Default().Handler(router)
+	handler = LogRequestMiddleware(handler)
+	handler = LoggerMiddleware(handler)
+	handler = AuthMiddleware(handler, &AuthOptions{
+		Skipper: AuthSkipper,
+	})
+	handler = gh.CompressHandlerLevel(handler, gzip.BestSpeed)
 	handler = RequestIDMiddleware(handler)
 
-	listen := ":8080"
-	if dev {
-		// Header to make reloads more visible
+	if h.Config.Dev() == "true" {
+		// Header to make reloads more visible on dev
 		fmt.Println(".")
-		fmt.Println(".")
-		fmt.Println(".")
-		fmt.Println(".")
-		fmt.Println(".")
+		fmt.Println("..")
+		fmt.Println("...")
+		fmt.Println("....")
+		fmt.Println(".....")
 	}
-	log.Info().Msgf("listening on %s", listen)
-	log.Fatal().Err(http.ListenAndServe(listen, handler))
+	log.Info().Msgf("listening on %s", h.Config.Addr())
+	log.Fatal().Err(http.ListenAndServe(h.Config.Addr(), handler))
 }

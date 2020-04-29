@@ -1,25 +1,53 @@
 # httprouter-example
 
-Minimal example of using [httprouter](https://github.com/julienschmidt/httprouter)
+Example of using [httprouter](https://github.com/julienschmidt/httprouter)
 with [zerolog](https://github.com/rs/zerolog)
-and middleware [handlers](https://github.com/gorilla/handlers)
+and gorilla middleware [handlers](https://github.com/gorilla/handlers)
 
-# Quick start
+## Quick start
 
-Run dev server 
+Clone the repos
 
-    go get github.com/mozey/httprouter-example
+    git clone https://github.com/mozey/httprouter-example.git
     
-    cd ${GOPATH}/src/github.com/mozey/httprouter-example
+    cd httprouter-example
+
+Configuration is done using [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
+
+Copy script to export dev config (uses [bash](https://www.gnu.org/software/bash/))
+
+    cp dev.sample.sh dev.sh 
+
+Run dev server
     
-    make dev
+    ./dev.sh && make dev
     
-Make requests
+**Alternatively**,
+use [mozey/config](https://github.com/mozey/config)
+to manage env with a flat config.json file.
+First setup a helper func for [toggling env](https://github.com/mozey/config#toggling-env).
+Then run the commands below
     
-    http localhost:8080
+    APP_DIR=$(pwd) ./scripts/config.sh
     
-    http localhost:8080/panic
+    conf dev && make dev
     
-    http localhost:8080/hello/foo?token=123
+Make requests with [httpie](https://httpie.org/)
     
-    http localhost:8080/does/not/exist?token=123
+    http localhost:8118/token/is/required/by/default
+    
+    http localhost:8118/hello/foo?token=123
+    
+    http localhost:8118/api?token=123
+    
+    http localhost:8118/panic
+    
+    http localhost:8118/does/not/exist?token=123
+    
+    http localhost:8118/index.html
+    
+    http localhost:8118/proxy
+    
+View static content in your browser,
+[click here](http://localhost:8118/)
+

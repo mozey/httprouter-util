@@ -4,6 +4,12 @@ github.com/gorilla/handlers
 # github.com/julienschmidt/httprouter v1.3.0
 ## explicit
 github.com/julienschmidt/httprouter
+# github.com/mozey/config v0.0.0-20200425121855-39802e49101e
+## explicit
+github.com/mozey/config/pkg/config
+# github.com/pkg/errors v0.8.1
+## explicit
+github.com/pkg/errors
 # github.com/rs/cors v1.7.0
 ## explicit
 github.com/rs/cors
