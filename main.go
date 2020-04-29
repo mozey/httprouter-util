@@ -20,7 +20,7 @@ type Handler struct {
 }
 
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
-	f, err := os.Open("index.html")
+	f, err := os.Open("www/index.html")
 	if err != nil {
 		response.JSON(http.StatusInternalServerError, w, r, response.Response{
 			Message: "Index page not found",
