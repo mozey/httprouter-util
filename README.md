@@ -6,7 +6,7 @@ and gorilla middleware [handlers](https://github.com/gorilla/handlers)
 
 ## Quick start
 
-Clone the repos
+Clone the repos (outside your GOPATH since this is a module)
 
     git clone https://github.com/mozey/httprouter-example.git
     
