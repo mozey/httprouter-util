@@ -29,7 +29,7 @@ func RespondJSON(w http.ResponseWriter, r *http.Request, i interface{}) {
 		log.Panic().Err(err)
 	}
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprint(w, string(j))
+	_, _ = fmt.Fprint(w, string(j))
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +44,7 @@ func Panic(w http.ResponseWriter, r *http.Request) {
 
 func Hello(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
-	fmt.Fprintf(w, "hello, %s!\n", params.ByName("name"))
+	_, _ = fmt.Fprintf(w, "hello, %s!\n", params.ByName("name"))
 }
 
 func PanicHandler(w http.ResponseWriter, r *http.Request, rcv interface{}) {
@@ -77,8 +77,9 @@ func RequestIDMiddleware(next http.Handler) http.Handler {
 			id, err := ksuid.NewRandom()
 			if err != nil {
 				requestID = err.Error()
+			} else {
+				requestID = id.String()
 			}
-			requestID = id.String()
 		}
 
 		// Set header

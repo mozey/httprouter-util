@@ -13,31 +13,31 @@ default: dependencies
 
 # dev...........................................................................
 # Local server with live reload
-clean.dev:
+dev.clean:
 	go clean
 
-build.dev: dependencies clean.dev
+dev.build: dependencies dev.clean
 	go build -o ./dev.out ./
 
 # attempt to kill running server
-kill.dev:
-	@echo kill.dev
+dev.kill:
+	@echo dev.kill
 	-@killall -9 $(PROG_DEV) 2>/dev/null || true
 
 # attempt to build and start server
-restart.dev:
-	@echo restart.dev
-	@make kill.dev
-	@make build.dev; (if [ "$$?" -eq 0 ]; then (./${PROG_DEV} &); fi)
+dev.restart:
+	@echo dev.restart
+	@make dev.kill
+	@make dev.build; (if [ "$$?" -eq 0 ]; then (./${PROG_DEV} &); fi)
 
 # watch .go files for changes then recompile & try to start server
 # will also kill server after ctrl+c
 # fswatch includes everything unless an exclusion filter says otherwise
 # https://stackoverflow.com/a/37237681/639133
 dev: dependencies
-	@make restart.dev
+	@make dev.restart
 	@fswatch -or --exclude ".*" --include "\\.go$$" ./ | \
-	xargs -n1 -I{} make restart.dev || make kill.dev
+	xargs -n1 -I{} make dev.restart || make dev.kill
 
 
 
