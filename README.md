@@ -20,7 +20,7 @@ Copy script to export dev config (uses [bash](https://www.gnu.org/software/bash/
 
 Run dev server
     
-    ./dev.sh && make dev
+    ./dev.sh
     
 **Alternatively**,
 use [mozey/config](https://github.com/mozey/config)
