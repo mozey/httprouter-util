@@ -1,15 +1,19 @@
+# github.com/davecgh/go-spew v1.1.0
+github.com/davecgh/go-spew/spew
 # github.com/gorilla/handlers v1.4.2
 ## explicit
 github.com/gorilla/handlers
 # github.com/julienschmidt/httprouter v1.3.0
 ## explicit
 github.com/julienschmidt/httprouter
-# github.com/mozey/config v0.0.0-20200425121855-39802e49101e
+# github.com/mozey/config v0.0.0-20200503112605-8a9f2c22c94e
 ## explicit
-github.com/mozey/config/pkg/config
+github.com/mozey/config/pkg/cmdconfig
 # github.com/pkg/errors v0.8.1
 ## explicit
 github.com/pkg/errors
+# github.com/pmezard/go-difflib v1.0.0
+github.com/pmezard/go-difflib/difflib
 # github.com/rs/cors v1.7.0
 ## explicit
 github.com/rs/cors
@@ -22,3 +26,9 @@ github.com/rs/zerolog/log
 # github.com/segmentio/ksuid v1.0.2
 ## explicit
 github.com/segmentio/ksuid
+# github.com/stretchr/testify v1.5.1
+## explicit
+github.com/stretchr/testify/assert
+github.com/stretchr/testify/require
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2

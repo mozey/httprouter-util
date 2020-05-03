@@ -1,10 +1,11 @@
 package main
 
-import "github.com/mozey/config/pkg/config"
-
-// Compiled with ldflags
-var AppDir string
+import (
+	"github.com/mozey/config/pkg/cmdconfig"
+)
 
 func main() {
-	config.Run(AppDir)
+	// For custom flags and commands,
+	// see comments in config.Main...
+	cmdconfig.Main()
 }
