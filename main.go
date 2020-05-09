@@ -25,6 +25,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		response.JSON(http.StatusInternalServerError, w, r, response.Response{
 			Message: "Index page not found",
 		})
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	b, err := ioutil.ReadAll(f)
@@ -32,6 +33,7 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		response.JSON(http.StatusInternalServerError, w, r, response.Response{
 			Message: "Error reading index page",
 		})
+		return
 	}
 	_, _ = fmt.Fprintf(w, string(b))
 }
