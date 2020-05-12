@@ -39,21 +39,21 @@ Then run the commands below
     
 Make requests with [httpie](https://httpie.org/)
     
-    http localhost:8118/token/is/required/by/default
+http://localhost:8118/token/is/required/by/default
     
-    http localhost:8118/hello/foo?token=123
+http://localhost:8118/hello/foo?token=123
     
-    http localhost:8118/api?token=123
+http://localhost:8118/api?token=123
     
-    http localhost:8118/panic
+http://localhost:8118/panic
     
-    http localhost:8118/does/not/exist?token=123
+http://localhost:8118/does/not/exist?token=123
     
-    http localhost:8118/index.html
+http://localhost:8118/index.html
     
-    http localhost:8118/www/data/go.txt
+http://localhost:8118/www/data/go.txt
     
-    http localhost:8118/proxy
+http://localhost:8118/proxy
     
 View static content in your browser,
 [click here](http://localhost:8118/)
