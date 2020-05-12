@@ -36,10 +36,14 @@ Then run the commands below
     APP_DIR=$(pwd) ./scripts/config.sh
     
     conf dev && make dev
-    
-Make requests with [httpie](https://httpie.org/)
-    
+  
+Token is required by default    
 http://localhost:8118/token/is/required/by/default
+
+Static content skips the token check
+- http://localhost:8118/index.html
+- http://localhost:8118
+- http://localhost:8118/www/data/go.txt
     
 http://localhost:8118/hello/foo?token=123
     
@@ -49,12 +53,7 @@ http://localhost:8118/panic
     
 http://localhost:8118/does/not/exist?token=123
     
-http://localhost:8118/index.html
-    
-http://localhost:8118/www/data/go.txt
-    
+TODO
 http://localhost:8118/proxy
     
-View static content in your browser,
-[click here](http://localhost:8118/)
-
+Tip: make requests from the cli with [httpie](https://httpie.org/)

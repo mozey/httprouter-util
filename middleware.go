@@ -147,6 +147,7 @@ func AuthSkipper(r *http.Request) bool {
 	case
 		"/",
 		"/index.html",
+		"/favicon.ico",
 		"/panic",
 		"/www",
 		"/proxy":

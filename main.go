@@ -35,7 +35,26 @@ func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	_, _ = fmt.Fprintf(w, string(b))
+	_, _ = fmt.Fprintf(w, string(b)) // Write string
+}
+
+func (h *Handler) Favicon(w http.ResponseWriter, r *http.Request) {
+	f, err := os.Open("www/favicon.ico")
+	if err != nil {
+		response.JSON(http.StatusInternalServerError, w, r, response.Response{
+			Message: "favicon not found",
+		})
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		response.JSON(http.StatusInternalServerError, w, r, response.Response{
+			Message: "Error reading favicon",
+		})
+		return
+	}
+	_, _ = w.Write(b) // Write bytes
 }
 
 func (h *Handler) API(w http.ResponseWriter, r *http.Request) {
@@ -88,6 +107,7 @@ func main() {
 	// Index page requires special routes
 	router.HandlerFunc("GET", "/", h.Index)
 	router.HandlerFunc("GET", "/index.html", h.Index)
+	router.HandlerFunc("GET", "/favicon.ico", h.Favicon)
 	// Misc
 	router.HandlerFunc("GET", "/api", h.API)
 	router.HandlerFunc("GET", "/panic", h.Panic)
