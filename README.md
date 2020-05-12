@@ -18,9 +18,14 @@ Copy script to export dev config (uses [bash](https://www.gnu.org/software/bash/
 
     cp dev.sample.sh dev.sh 
 
-Run dev server
+Run dev server (no live reload)
+
+    ./dev.sh run
     
-    ./dev.sh
+Run dev server with live reload
+    
+    ./dev.sh reload
+   
     
 **Alternatively**,
 use [mozey/config](https://github.com/mozey/config)
