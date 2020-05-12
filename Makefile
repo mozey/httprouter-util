@@ -4,12 +4,9 @@
 # binary name to kill/restart
 PROG_DEV = dev.out
 
-dependencies:
+fswatch:
 	@command -v fswatch --version >/dev/null 2>&1 || \
 	{ printf >&2 "Install fswatch, run: brew install fswatch\n"; exit 1; }
-
-# default targets to run when only running `make`
-default: dependencies
 
 # dev...........................................................................
 dev.clean:
@@ -17,7 +14,7 @@ dev.clean:
 	go clean
 
 # Build dev server
-dev.build: dependencies dev.clean
+dev.build: dev.clean
 	@echo dev.build
 	go build -o ./dev.out ./
 
@@ -43,7 +40,7 @@ run:
 # will also kill server after ctrl+c
 # fswatch includes everything unless an exclusion filter says otherwise
 # https://stackoverflow.com/a/37237681/639133
-reload: dependencies
+reload: fswatch
 	@make dev.restart
 	@fswatch -or --exclude ".*" --include "\\.go$$" ./ | \
 	xargs -n1 -I{} make dev.restart || make dev.kill
