@@ -16,7 +16,11 @@ Following the 12 factor app recommendation to
 [store config in the environment](https://12factor.net/config).
 Configuration is done using [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
 
-Copy script to export dev config (uses [bash](https://www.gnu.org/software/bash/))
+The scripts use [bash](https://www.gnu.org/software/bash/),
+[make](https://www.gnu.org/software/make/),
+[fswatch](https://github.com/emcrisostomo/fswatch)
+
+Copy script to export dev config
 
     cp sample.dev.sh dev.sh 
 
@@ -39,7 +43,7 @@ Then run the commands below
     
     conf dev && make reload
     
-...or using tmux
+...or using [tmux](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux)
 
     cp sample.up.sh up.sh
     
