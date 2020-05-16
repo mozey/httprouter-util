@@ -50,6 +50,11 @@ Then run the commands below
     ./up.sh
     
     ./tmux.sh app
+    # ctrl+b d
+    
+    cp sample.down.sh down.sh
+    
+    ./down.sh
     
 ## Reset
 

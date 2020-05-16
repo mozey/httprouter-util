@@ -19,3 +19,4 @@ config
 !pkg/config
 dev.sh
 up.sh
+down.sh
