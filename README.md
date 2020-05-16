@@ -16,7 +16,7 @@ Configuration is done using [environment variables](https://en.wikipedia.org/wik
 
 Copy script to export dev config (uses [bash](https://www.gnu.org/software/bash/))
 
-    cp dev.sample.sh dev.sh 
+    cp sample.dev.sh dev.sh 
 
 Run dev server (no live reload)
 
@@ -35,7 +35,18 @@ Then run the commands below
     
     APP_DIR=$(pwd) ./scripts/config.sh
     
-    conf dev && make dev
+    conf dev && make reload
+    
+...or using tmux
+
+    cp sample.up.sh up.sh
+    
+    ./up.sh
+    
+    ./tmux.sh app
+    
+    
+## Examples
   
 Token is required by default    
 http://localhost:8118/token/is/required/by/default
@@ -57,3 +68,6 @@ TODO
 http://localhost:8118/proxy
     
 Tip: make requests from the cli with [httpie](https://httpie.org/)
+
+
+

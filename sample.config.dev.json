@@ -1,5 +1,6 @@
 {
     "APP_ADDR": ":8118",
     "APP_DEV": "true",
+    "APP_NAME": "httprouter-example",
     "APP_PROXY": "https://petstore.swagger.io/v2"
 }

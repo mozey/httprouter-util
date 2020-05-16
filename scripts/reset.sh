@@ -16,8 +16,9 @@ if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     rm -f ${APP_DIR}/config
     rm -f ${APP_DIR}/config.dev.json
-    rm -f ${APP_DIR}/dev.out
+    rm -f ${APP_DIR}/*.out
     rm -f ${APP_DIR}/dev.sh
+    rm -f ${APP_DIR}/up.sh
     echo "done"
 else
     echo "abort"

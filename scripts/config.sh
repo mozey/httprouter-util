@@ -12,7 +12,7 @@ go build -o ${APP_DIR}/config ./cmd/config
 # Create config files if they don't exist
 if [[ ! -f ${APP_DIR}/config.dev.json ]]; then
     echo "create dev config..."
-    cp ${APP_DIR}/config.dev.sample.json ${APP_DIR}/config.dev.json
+    cp ${APP_DIR}/sample.config.dev.json ${APP_DIR}/config.dev.json
 fi
 
 echo "generate config helper..."

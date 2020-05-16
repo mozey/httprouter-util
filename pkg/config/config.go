@@ -18,6 +18,9 @@ var dev string
 // APP_DIR
 var dir string
 
+// APP_NAME
+var name string
+
 // APP_PROXY
 var proxy string
 
@@ -26,6 +29,7 @@ type Config struct {
 	addr  string // APP_ADDR
 	dev   string // APP_DEV
 	dir   string // APP_DIR
+	name  string // APP_NAME
 	proxy string // APP_PROXY
 }
 
@@ -42,6 +46,11 @@ func (c *Config) Dev() string {
 // Dir is APP_DIR
 func (c *Config) Dir() string {
 	return c.dir
+}
+
+// Name is APP_NAME
+func (c *Config) Name() string {
+	return c.name
 }
 
 // Proxy is APP_PROXY
@@ -62,6 +71,11 @@ func (c *Config) SetDev(v string) {
 // SetDir overrides the value of dir
 func (c *Config) SetDir(v string) {
 	c.dir = v
+}
+
+// SetName overrides the value of name
+func (c *Config) SetName(v string) {
+	c.name = v
 }
 
 // SetProxy overrides the value of proxy
@@ -96,6 +110,10 @@ func SetVars(conf *Config) {
 		conf.dir = dir
 	}
 
+	if name != "" {
+		conf.name = name
+	}
+
 	if proxy != "" {
 		conf.proxy = proxy
 	}
@@ -119,6 +137,11 @@ func SetEnv(conf *Config) {
 	v = os.Getenv("APP_DIR")
 	if v != "" {
 		conf.dir = v
+	}
+
+	v = os.Getenv("APP_NAME")
+	if v != "" {
+		conf.name = v
 	}
 
 	v = os.Getenv("APP_PROXY")

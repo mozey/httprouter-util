@@ -2,7 +2,7 @@
 # https://gist.github.com/lantins/e83477d8bccab83f078d
 
 # binary name to kill/restart
-PROG_DEV = dev.out
+PROG_DEV = app.out
 
 fswatch:
 	@command -v fswatch --version >/dev/null 2>&1 || \
@@ -16,7 +16,7 @@ dev.clean:
 # Build dev server
 dev.build: dev.clean
 	@echo dev.build
-	go build -o ./dev.out ./
+	go build -o ./${PROG_DEV} ./
 
 # Attempt to kill running server
 dev.kill:
