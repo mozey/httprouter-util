@@ -131,7 +131,7 @@ func main() {
 	handler = RequestIDMiddleware(handler)
 
 	if h.Config.Dev() == "true" {
-		// Header to make reloads more visible on dev
+		// Header to make apps more visible on dev
 		fmt.Println(".")
 		fmt.Println("..")
 		fmt.Println("...")

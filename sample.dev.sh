@@ -20,6 +20,7 @@ fi
 MODE=$1
 
 export APP_ADDR=":8118"
+export APP_EXE="app.out"
 export APP_DEV="true"
 export APP_DIR=$(pwd)
 export APP_NAME="httprouter-example"

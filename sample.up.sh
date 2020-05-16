@@ -12,6 +12,6 @@ echo "set env in tmux..."
 tmux send -t ${APP_NAME}-app "source ~/.bashrc && cd ${APP_DIR} && conf dev" ENTER
 
 echo "start services..."
-tmux send -t ${APP_NAME}-app "make reload" ENTER
+tmux send -t ${APP_NAME}-app "make app" ENTER
 
 echo "done `basename $0`"

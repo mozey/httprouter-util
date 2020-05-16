@@ -26,11 +26,11 @@ Copy script to export dev config
 
 Run dev server (no live reload)
 
-    ./dev.sh run
+    ./dev.sh app.restart
     
 Run dev server with live reload
     
-    ./dev.sh reload
+    ./dev.sh app
    
     
 **Alternatively**,
@@ -41,7 +41,7 @@ Then run the commands below
     
     APP_DIR=$(pwd) ./scripts/config.sh
     
-    conf dev && make reload
+    conf dev && make app
     
 ...or using [tmux](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux)
 
@@ -50,6 +50,12 @@ Then run the commands below
     ./up.sh
     
     ./tmux.sh app
+    
+## Reset
+
+Removes all user config
+
+    APP_DIR=$(pwd) ./scripts/reset.sh
     
     
 ## Examples
