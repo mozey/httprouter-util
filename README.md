@@ -26,7 +26,7 @@ Copy script to export dev config
 
 Run dev server (no live reload)
 
-    ./dev.sh app.restart
+    ./dev.sh app.run
     
 Run dev server with live reload
     

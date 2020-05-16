@@ -6,6 +6,7 @@ APP_DIR=${APP_DIR}
 APP_EXE=${APP_EXE}
 
 cd ${APP_DIR}
+rm -f ${APP_DIR}/${APP_EXE}
 go build -o ${APP_DIR}/${APP_EXE} ./
 
 echo "done `basename $0`"

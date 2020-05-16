@@ -2,7 +2,7 @@
 # https://gist.github.com/lantins/e83477d8bccab83f078d
 
 # binary name to kill/restart
-APP_EXE = app.out
+EXE = ${APP_EXE}
 
 fswatch:
 	@command -v fswatch --version >/dev/null 2>&1 || \
@@ -25,13 +25,21 @@ app.build.dev:
 # Attempt to kill running server
 app.kill:
 	@echo app.kill
-	-@killall -9 $(APP_EXE) 2>/dev/null || true
+	-@killall -9 $(EXE) 2>/dev/null || true
 
-# Restart server
+# Just run the server, no live reload
+app.run:
+	@echo app.run
+	@make app.build.dev
+	/usr/bin/env bash -c ./${EXE}
+
+# Restart server, for use with fswatch
+# TODO Run `make app.restart` then ctrl+x and do `ps ax | grep .out`
+# Why is app.out still running?
 app.restart:
 	@echo app.restart
 	@make app.kill
-	@make app.build.dev; (if [ "$$?" -eq 0 ]; then (./${APP_EXE} &); fi)
+	@make app.build.dev; (if [ "$$?" -eq 0 ]; then (./${EXE} &); fi)
 
 # Run app server with live reload
 # Watch .go files for changes then recompile & try to start server
