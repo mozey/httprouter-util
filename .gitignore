@@ -16,7 +16,7 @@
 
 config.dev.json
 config
-!pkg/config
+!vendor/github.com/mozey/config
 dev.sh
 up.sh
 down.sh
