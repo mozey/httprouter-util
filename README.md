@@ -12,6 +12,8 @@ Clone the repos (outside your GOPATH since this is a module)
     
     cd httprouter-example
 
+Following the 12 factor app recommendation to
+[store config in the environment](https://12factor.net/config).
 Configuration is done using [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
 
 Copy script to export dev config (uses [bash](https://www.gnu.org/software/bash/))
