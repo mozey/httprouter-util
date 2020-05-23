@@ -20,3 +20,5 @@ config
 dev.sh
 up.sh
 down.sh
+
+build

@@ -22,7 +22,7 @@ TARGET=$1
 # This script cannot change ENV of the parent process,
 # it can only be set for child processes
 export APP_ADDR=":8118"
-export APP_EXE="app.out"
+export APP_EXE="build/app"
 export APP_DEV="true"
 export APP_DIR=$(pwd)
 export APP_NAME="httprouter-example"
