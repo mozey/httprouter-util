@@ -7,18 +7,20 @@ EXPECTED_ARGS=1
 if [[ $# -lt ${EXPECTED_ARGS} ]]
 then
   echo "Usage:"
-  echo "  `basename $0` MODE"
+  echo "  `basename $0` TARGET"
   echo ""
-  echo "Run dev server"
+  echo "Execute the specified target with dev env"
   echo ""
   echo "Examples:"
-  echo "  `basename $0` run"
-  echo "  `basename $0` reload"
+  echo "  `basename $0` app"
+  echo "  `basename $0` test"
   exit 1
 fi
 
-MODE=$1
+TARGET=$1
 
+# This script cannot change ENV of the parent process,
+# it can only be set for child processes
 export APP_ADDR=":8118"
 export APP_EXE="app.out"
 export APP_DEV="true"
@@ -28,4 +30,4 @@ export APP_PROXY="https://petstore.swagger.io/v2"
 
 printenv | grep APP_
 
-make ${MODE}
+./make.sh ${TARGET}

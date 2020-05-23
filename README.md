@@ -4,6 +4,28 @@ Example of using [httprouter](https://github.com/julienschmidt/httprouter)
 with [zerolog](https://github.com/rs/zerolog)
 and gorilla middleware [handlers](https://github.com/gorilla/handlers)
 
+
+## Dependencies
+
+This example aims for a good cross platform experience by only depending on 
+- [Golang](https://golang.org/) 
+- [Bash](https://www.gnu.org/software/bash)
+- [fswatch](https://github.com/emcrisostomo/fswatch)
+- [xargs](https://github.com/emcrisostomo/fswatch)
+
+[GNU Make](https://stackoverflow.com/questions/3798562/why-use-make-over-a-shell-script) 
+is not needed because Golang is fast to build,
+and `fswatch` can be used for live reload.
+For this example `main.go` is kept in the project root.
+Larger projects might have separate executables in the *"/cmd"* dir
+
+Bash on Windows is easy to setup using 
+[msys2](https://www.msys2.org/), MinGW, or native shell on Windows 10.
+For other UNIX programs see [gow](https://github.com/bmatzelle/gow/wiki)
+
+**TODO** Instructions for installing deps on Windows
+
+
 ## Quick start
 
 Clone the repos (outside your GOPATH since this is a module)
@@ -16,17 +38,13 @@ Following the 12 factor app recommendation to
 [store config in the environment](https://12factor.net/config).
 Configuration is done using [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
 
-The scripts use [bash](https://www.gnu.org/software/bash/),
-[make](https://www.gnu.org/software/make/),
-[fswatch](https://github.com/emcrisostomo/fswatch)
-
 Copy script to export dev config
 
     cp sample.dev.sh dev.sh 
 
 Run dev server (no live reload)
 
-    ./dev.sh app.run
+    ./dev.sh app_run
     
 Run dev server with live reload
     
@@ -41,7 +59,7 @@ Then run the commands below
     
     APP_DIR=$(pwd) ./scripts/config.sh
     
-    conf dev && make app
+    conf && ./make.sh app
     
 ...or using [tmux](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux)
 
@@ -56,13 +74,7 @@ Then run the commands below
     
     ./down.sh
     
-## Reset
-
-Removes all user config
-
-    APP_DIR=$(pwd) ./scripts/reset.sh
-    
-    
+   
 ## Examples
   
 Token is required by default    
@@ -86,5 +98,11 @@ http://localhost:8118/proxy
     
 Tip: make requests from the cli with [httpie](https://httpie.org/)
 
+
+## Reset
+
+Removes all user config
+
+    APP_DIR=$(pwd) ./scripts/reset.sh
 
 

@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
-
-# Set (e) exit on error
-# Set (u) no-unset to exit on undefined variable
-set -eu
-# If any command in a pipeline fails,
-# that return code will be used as the
-# return code of the whole pipeline.
-bash -c 'set -o pipefail'
+set -eu # exit on error or undefined variable
+bash -c 'set -o pipefail' # return code of first cmd to fail in a pipeline
 
 APP_DIR=${APP_DIR}
 echo "APP_DIR=${APP_DIR}"

@@ -9,9 +9,9 @@ echo "creating tmux sessions..."
 tmux new -d -s ${APP_NAME}-app
 
 echo "set env in tmux..."
-tmux send -t ${APP_NAME}-app "source ~/.bashrc && cd ${APP_DIR} && conf dev" ENTER
+tmux send -t ${APP_NAME}-app "source ~/.bashrc && cd ${APP_DIR} && conf" ENTER
 
 echo "start services..."
-tmux send -t ${APP_NAME}-app "make app" ENTER
+tmux send -t ${APP_NAME}-app "./make.sh app" ENTER
 
 echo "done `basename $0`"
