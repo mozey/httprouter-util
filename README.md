@@ -39,7 +39,8 @@ Then run the commands below
     
     conf && ./make.sh app
     
-...or using [tmux](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux)
+Or start up services 
+in [tmux](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux)
 
     cp sample.up.sh up.sh
     
@@ -51,6 +52,12 @@ Then run the commands below
 Show running processes
    
     ps ax | grep ${APP_NAME}
+    
+Shut down 
+
+    cp sample.down.sh down.sh
+    
+    ./down.sh 
     
    
 ## Examples
@@ -76,13 +83,6 @@ Static content skips the token check
     
 **NOTE** 
 Make requests from the cli with [httpie](https://httpie.org/)
-
-
-## Stop 
-
-    cp sample.down.sh down.sh
-    
-    ./down.sh 
 
 
 ## Reset
