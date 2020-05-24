@@ -39,7 +39,7 @@ Then run the commands below
     
     conf && ./make.sh app
     
-Or start up services 
+Start up services 
 in [tmux](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux)
 
     cp sample.up.sh up.sh
@@ -106,8 +106,8 @@ This example aims for a good cross platform experience by depending on
 On macOS, Linux
 - [pgrep](https://en.wikipedia.org/wiki/Pgrep) and kill
 
-On Windows
-- **TODO** [taskkill](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/taskkill)
+**TODO** On Windows
+- [taskkill](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/taskkill)
 
 [GNU Make](https://stackoverflow.com/questions/3798562/why-use-make-over-a-shell-script) 
 is not needed because Golang is fast to build,
