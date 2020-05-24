@@ -19,7 +19,7 @@ fi
 
 TARGET=${1}
 
-# Executable to kill/restart,
+# Binary to kill/restart,
 APP_EXE=${APP_EXE}
 # Use full path to avoid conflicts
 APP_EXE_PATH="$(pwd)/${APP_EXE}"
@@ -51,7 +51,7 @@ detect_os() {
     esac
 }
 
-# Kill process by matching full path to executable
+# Kill process by matching full path to bin
 kill_path() {
     OS=$(detect_os)
     if [[ ${OS} == "macOS" ]] || [[ ${OS} == "linux" ]]; then
@@ -65,37 +65,45 @@ kill_path() {
     fi
 }
 
-# Build dev server
+# Run the binary, no live reload.
+# Use full path to avoid conflicts
+run_bin() {
+    depends
+    app_kill
+    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${1} ); fi)
+}
+
+# Restart the binary (for use with fswatch).
+# Use full path to avoid conflicts
+restart_bin() {
+    depends
+    app_kill
+    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${1}& ); fi)
+}
+
 app_build_dev() {
     echo ${FUNCNAME}
     scripts/build.dev.sh
 }
 
-# Attempt to kill running server
 app_kill() {
     echo ${FUNCNAME}
     kill_path ${APP_EXE_PATH}
 }
 
-# Just run the server, no live reload
 app_run() {
     echo ${FUNCNAME}
-    depends
-    app_kill
-    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH} ); fi)
+    run_bin ${APP_EXE_PATH}
 }
 
-# Restart server, for use with fswatch
 app_restart() {
     echo ${FUNCNAME}
-    depends
-    app_kill
-    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH}& ); fi)
+    restart_bin ${APP_EXE_PATH}
 }
 
-# Run app server with live reload
-# Watch .go files for changes then recompile & try to start server
-# will also kill server on ctrl+c
+# Run app bin with live reload
+# Watch .go files for changes then recompile & try to start bin
+# will also kill bin on ctrl+c
 # fswatch includes everything unless an exclusion filter says otherwise
 # https://stackoverflow.com/a/37237681/639133
 app() {
@@ -109,6 +117,7 @@ app() {
 	xargs -n1 bash -c "./make.sh app_restart" || bash -c "./make.sh app_kill"
 }
 
+# Execute target if it's a func defined in this script
 TYPE=$(type -t ${TARGET} || echo "undefined")
 if [[ ${TYPE} == "function" ]]; then
     ${TARGET}

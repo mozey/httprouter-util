@@ -110,7 +110,7 @@ On Windows
 is not needed because Golang is fast to build,
 and `fswatch` can be used for live reload.
 For this example `main.go` is kept in the project root.
-Larger projects might have separate executables in the *"/cmd"* dir
+Larger projects might have separate bins in the *"/cmd"* dir
 
 Bash on Windows is easy to setup using 
 [msys2](https://www.msys2.org/), MinGW, or native shell on Windows 10.
