@@ -8,6 +8,7 @@ import (
 	"github.com/mozey/httprouter-example/pkg/config"
 	"github.com/mozey/httprouter-example/pkg/logutil"
 	"github.com/mozey/httprouter-example/pkg/response"
+	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 	"io/ioutil"
@@ -139,5 +140,6 @@ func main() {
 		fmt.Println(".....")
 	}
 	log.Info().Msgf("listening on %s", h.Config.Addr())
-	log.Fatal().Err(http.ListenAndServe(h.Config.Addr(), handler))
+	err := errors.WithStack(http.ListenAndServe(h.Config.Addr(), handler))
+	log.Fatal().Stack().Err(err).Msg("") // Don't override err, use empty msg
 }

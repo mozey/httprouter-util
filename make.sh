@@ -19,14 +19,50 @@ fi
 
 TARGET=${1}
 
-# Executable to kill/restart
+# Executable to kill/restart,
 APP_EXE=${APP_EXE}
+# Use full path to avoid conflicts
+APP_EXE_PATH="$(pwd)/${APP_EXE}"
 
 depends() {
     go version >/dev/null 2>&1 || \
 	{ printf >&2 "Install https://golang.org\n"; exit 1; }
     fswatch --version >/dev/null 2>&1 || \
 	{ printf >&2 "Install https://github.com/emcrisostomo/fswatch\n"; exit 1; }
+}
+
+detect_os() {
+    case "$(uname -s)" in
+        Darwin)
+            echo 'macOS'
+        ;;
+        Linux)
+            echo 'linux'
+        ;;
+        CYGWIN*|MINGW32*|MSYS*|MINGW*)
+            echo 'windows'
+        ;;
+        # Detect additional OS's here...
+        # See correspondence table at the bottom of this link
+        # https://stackoverflow.com/a/27776822/639133
+        *)
+            echo 'other'
+        ;;
+    esac
+}
+
+# Kill process by matching full path to executable
+kill_path() {
+    OS=$(detect_os)
+    if [[ ${OS} == "macOS" ]] || [[ ${OS} == "linux" ]]; then
+        PID=$(pgrep -fx "${1}" || echo "")
+        if [[ -n "${PID}" ]]; then
+            kill ${PID}
+        fi
+    else
+        echo "OS ${OS} not implemented"
+        exit 1
+    fi
 }
 
 # Build dev server
@@ -38,23 +74,23 @@ app_build_dev() {
 # Attempt to kill running server
 app_kill() {
     echo ${FUNCNAME}
-    # TODO On Windows use taskkill
-    # https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/taskkill
-    killall -9 ${APP_EXE} 2>/dev/null || true
+    kill_path ${APP_EXE_PATH}
 }
 
 # Just run the server, no live reload
 app_run() {
     echo ${FUNCNAME}
+    depends
     app_kill
-    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (./${APP_EXE} ); fi)
+    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH} ); fi)
 }
 
 # Restart server, for use with fswatch
 app_restart() {
     echo ${FUNCNAME}
+    depends
     app_kill
-    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (./${APP_EXE}& ); fi)
+    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH}& ); fi)
 }
 
 # Run app server with live reload
@@ -64,6 +100,7 @@ app_restart() {
 # https://stackoverflow.com/a/37237681/639133
 app() {
     echo ${FUNCNAME}
+    depends
     app_restart
     fswatch -or --exclude ".*" \
     --include "^.*pkg.*go$" \
@@ -76,6 +113,6 @@ TYPE=$(type -t ${TARGET} || echo "undefined")
 if [[ ${TYPE} == "function" ]]; then
     ${TARGET}
 else
-    echo "${TARGET} not implemented"
+    echo "TARGET ${TARGET} not implemented"
     exit 1
 fi

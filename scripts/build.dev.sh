@@ -6,7 +6,7 @@ APP_DIR=${APP_DIR}
 APP_EXE=${APP_EXE}
 
 cd ${APP_DIR}
-mkdir -p build
+mkdir -p dist
 rm -f ${APP_DIR}/${APP_EXE}
 go build -o ${APP_DIR}/${APP_EXE} ./
 

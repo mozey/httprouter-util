@@ -9,12 +9,12 @@ read -r -p "Reset dev configuration in APP_DIR? [y/N] " response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
 then
     rm -f ${APP_DIR}/*.out
-    rm -f ${APP_DIR}/build/*
-    rmdir build
+    rm -f ${APP_DIR}/dist/*
     rm -f ${APP_DIR}/config
     rm -f ${APP_DIR}/config.dev.json
     rm -f ${APP_DIR}/dev.sh
     rm -f ${APP_DIR}/up.sh
+    rm -f ${APP_DIR}/down.sh
     echo "done"
 else
     echo "abort"
