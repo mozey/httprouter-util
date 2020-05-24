@@ -78,8 +78,11 @@ Static content skips the token check
     
 [http://localhost:8118/does/not/exist?token=123](http://localhost:8118/does/not/exist?token=123)
     
-**TODO**
+**TODO** Proxy request to external service
 [http://localhost:8118/proxy](http://localhost:8118/proxy)
+    
+**TODO** Define services on the handler, e.g. DB connection
+[http://localhost:8118/db?sql=select * from color](http://localhost:8118/db?sql=select%20*%20from%20color)
     
 **NOTE** 
 Make requests from the cli with [httpie](https://httpie.org/)
