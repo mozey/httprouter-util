@@ -4,7 +4,7 @@ bash -c 'set -o pipefail' # return code of first cmd to fail in a pipeline
 
 EXPECTED_ARGS=1
 
-if [[ $# -ne ${EXPECTED_ARGS} ]]
+if [[ $# -lt ${EXPECTED_ARGS} ]]
 then
   echo "Usage:"
   echo "  `basename $0` TARGET"
@@ -24,11 +24,20 @@ APP_EXE=${APP_EXE}
 # Use full path to avoid conflicts
 APP_EXE_PATH="$(pwd)/${APP_EXE}"
 
+# Depends lists, and can be used to check for, programs this script depends on
 depends() {
-    go version >/dev/null 2>&1 || \
-	{ printf >&2 "Install https://golang.org\n"; exit 1; }
-    fswatch --version >/dev/null 2>&1 || \
-	{ printf >&2 "Install https://github.com/emcrisostomo/fswatch\n"; exit 1; }
+    if [[ ${1} == "go" ]]; then
+        go version >/dev/null 2>&1 || \
+        { printf >&2 \
+            "Install https://golang.org\n"; exit 1; }
+    elif [[ ${1} == "fswatch" ]]; then
+        fswatch --version >/dev/null 2>&1 || \
+        { printf >&2 \
+            "Install https://github.com/emcrisostomo/fswatch\n"; exit 1; }
+    else
+        echo "unknown dependency ${1}"
+        exit 1
+    fi
 }
 
 detect_os() {
@@ -65,22 +74,6 @@ kill_path() {
     fi
 }
 
-# Run the binary, no live reload.
-# Use full path to avoid conflicts
-run_bin() {
-    depends
-    app_kill
-    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${1} ); fi)
-}
-
-# Restart the binary (for use with fswatch).
-# Use full path to avoid conflicts
-restart_bin() {
-    depends
-    app_kill
-    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${1}& ); fi)
-}
-
 app_build_dev() {
     echo ${FUNCNAME}
     scripts/build.dev.sh
@@ -91,14 +84,22 @@ app_kill() {
     kill_path ${APP_EXE_PATH}
 }
 
+# Run the binary, no live reload.
+# Use full path to avoid conflicts
 app_run() {
     echo ${FUNCNAME}
-    run_bin ${APP_EXE_PATH}
+    depends go
+    app_kill
+    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH} ); fi)
 }
 
+# Restart the binary (for use with fswatch).
+# Use full path to avoid conflicts
 app_restart() {
     echo ${FUNCNAME}
-    restart_bin ${APP_EXE_PATH}
+    depends go
+    app_kill
+    app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH}& ); fi)
 }
 
 # Run app bin with live reload
@@ -108,7 +109,7 @@ app_restart() {
 # https://stackoverflow.com/a/37237681/639133
 app() {
     echo ${FUNCNAME}
-    depends
+    depends fswatch
     app_restart
     fswatch -or --exclude ".*" \
     --include "^.*pkg.*go$" \
@@ -117,10 +118,12 @@ app() {
 	xargs -n1 bash -c "./make.sh app_restart" || bash -c "./make.sh app_kill"
 }
 
-# Execute target if it's a func defined in this script
+# Execute target if it's a func defined in this script.
 TYPE=$(type -t ${TARGET} || echo "undefined")
 if [[ ${TYPE} == "function" ]]; then
-    ${TARGET}
+    # Additional arguments, after the target, are passed through.
+    # For example, `./make.sh depends something`
+    ${TARGET} ${@:2}
 else
     echo "TARGET ${TARGET} not implemented"
     exit 1

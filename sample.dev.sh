@@ -19,15 +19,18 @@ fi
 
 TARGET=$1
 
+export APP_DIR=$(pwd)
+
 # This script cannot change ENV of the parent process,
-# it can only be set for child processes
+# it can only be set for child processes.
+# Keys below matches those defined in sample.config.dev.json
 export APP_ADDR=":8118"
 export APP_EXE="dist/app"
 export APP_DEV="true"
-export APP_DIR=$(pwd)
 export APP_NAME="httprouter-example"
 export APP_PROXY="https://petstore.swagger.io/v2"
 
 printenv | sort | grep --color -E "APP_|AWS_"
 
 ./make.sh ${TARGET}
+
