@@ -19,21 +19,40 @@ fi
 
 TARGET=${1}
 
-# Binary to kill/restart,
-APP_EXE=${APP_EXE}
-# Use full path to avoid conflicts
-APP_EXE_PATH="$(pwd)/${APP_EXE}"
-
 # Depends lists, and can be used to check for, programs this script depends on
 depends() {
     if [[ ${1} == "go" ]]; then
         go version >/dev/null 2>&1 || \
         { printf >&2 \
             "Install https://golang.org\n"; exit 1; }
+
     elif [[ ${1} == "fswatch" ]]; then
         fswatch --version >/dev/null 2>&1 || \
         { printf >&2 \
             "Install https://github.com/emcrisostomo/fswatch\n"; exit 1; }
+
+    elif [[ ${1} == "jq" ]]; then
+        jq --version >/dev/null 2>&1 || \
+        { printf >&2 \
+            "Install https://stedolan.github.io/jq\n"; exit 1; }
+
+    elif [[ ${1} == "gotest" ]]; then
+        # TODO How to make gotest print version?
+        TYPE=$(type -t gotest || echo "undefined")
+        if [[ ${TYPE} != "file" ]]; then
+            { printf >&2 \
+                "Install https://github.com/rakyll/gotest\n"; exit 1; }
+        fi
+
+    elif [[ ${1} == "APP_EXE_PATH" ]]; then
+        export APP_EXE_PATH=${APP_EXE_PATH:-undefined}
+        if [[ ${APP_EXE_PATH} == "undefined" ]]; then
+            # Error if APP_EXE is not set
+            export APP_EXE=${APP_EXE}
+            # Use full path to avoid conflicts
+            export APP_EXE_PATH="$(pwd)/${APP_EXE}"
+        fi
+
     else
         echo "unknown dependency ${1}"
         exit 1
@@ -81,6 +100,7 @@ app_build_dev() {
 
 app_kill() {
     echo ${FUNCNAME}
+    depends APP_EXE_PATH
     kill_path ${APP_EXE_PATH}
 }
 
@@ -89,6 +109,7 @@ app_kill() {
 app_run() {
     echo ${FUNCNAME}
     depends go
+    depends APP_EXE_PATH
     app_kill
     app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH} ); fi)
 }
@@ -98,6 +119,7 @@ app_run() {
 app_restart() {
     echo ${FUNCNAME}
     depends go
+    depends APP_EXE_PATH
     app_kill
     app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH}& ); fi)
 }
@@ -116,6 +138,55 @@ app() {
     --include "./main.go$" \
     --include "./middleware.go$" ./ | \
 	xargs -n1 bash -c "./make.sh app_restart" || bash -c "./make.sh app_kill"
+}
+
+# Generate dev.sh from config.dev.json
+dev_sh() {
+    echo ${FUNCNAME}
+    depends jq
+
+    read -r -p "Generate new dev.sh? [y/N] " response
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]
+    then
+        :
+    else
+        echo "abort"
+        exit 0
+    fi
+
+    SAMPLE_CONFIG="sample.config.dev.json"
+    CONFIG="config.dev.json"
+    DEV_SH="dev.sh"
+
+    if [[ -f "${CONFIG}" ]]; then
+        echo "using existing config file"
+    else
+        echo "creating new ${CONFIG}"
+        cp ${SAMPLE_CONFIG} ${CONFIG}
+    fi
+
+    echo "#!/usr/bin/env bash" > ${DEV_SH}
+    echo "# Generated from ${CONFIG} with make.sh, DO NOT EDIT!" >> ${DEV_SH}
+    echo "" >> ${DEV_SH}
+    echo "export APP_DIR=$(pwd)" >> ${DEV_SH}
+    echo "" >> ${DEV_SH}
+
+    # Create array of key values
+    # https://stackoverflow.com/a/23118607/639133
+    KEY_VALUES=()
+    while IFS='' read -r line; do
+        KEY_VALUES+=("$line")
+    done < <(jq -r 'to_entries|map("\(.key)\n\(.value|tostring)")|.[]' ./${CONFIG})
+    for (( i = 0 ; i < ${#KEY_VALUES[@]} ; i = i + 2 )) do
+        KEY="${KEY_VALUES[$i]}"
+        VALUE="${KEY_VALUES[$i+1]}"
+        echo "export ${KEY}=\"${VALUE}\"" >>  ${DEV_SH}
+    done
+
+    echo "" >> ${DEV_SH}
+    echo 'printenv | sort | grep --color -E "APP_|AWS_"' >> ${DEV_SH}
+
+    chmod u+x ${DEV_SH}
 }
 
 # Execute target if it's a func defined in this script.

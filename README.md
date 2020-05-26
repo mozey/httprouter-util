@@ -17,17 +17,17 @@ Following the 12 factor app recommendation to
 [store config in the environment](https://12factor.net/config).
 Configuration is done using [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
 
-Copy script to export dev config
+Generate script to export dev config
 
-    cp sample.dev.sh dev.sh 
+    ./make.sh dev_sh 
 
 Run dev server (no live reload)
 
-    ./dev.sh app_run
+    source ./dev.sh && ./make.sh app_run
     
 Run dev server with live reload
     
-    ./dev.sh app
+    ./make.sh app
     
 **Alternatively**,
 use [mozey/config](https://github.com/mozey/config)
