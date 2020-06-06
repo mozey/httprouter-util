@@ -6,6 +6,7 @@ package logutil
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 type state struct {
@@ -58,16 +59,21 @@ func MarshalStack(err error) interface{} {
 	s := &state{}
 	out := make([]string, 0, len(st))
 	for _, frame := range st {
-		fileName := frameField(frame, s, 's')
+		filePaths := strings.Split(fmt.Sprintf("%+s", frame), "\n\t")
+		var filePath string
+		if len(filePaths) == 2 {
+			filePath = filePaths[1]
+		} else {
+			filePath = frameField(frame, s, 's')
+		}
 		functionName := frameField(frame, s, 'n')
 		lineNumber := frameField(frame, s, 'd')
 		if functionName == TruncFunc {
 			break
 		}
-		// TODO Standard formatting?
-		// TODO Include full path to file?
-		out = append(out, fmt.Sprintf("%s:%s %s",
-			fileName,
+		// Space in front of filePath required for click through to definition
+		out = append(out, fmt.Sprintf(" %s:%s %s",
+			filePath,
 			lineNumber,
 			functionName))
 	}
