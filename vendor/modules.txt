@@ -9,6 +9,9 @@ github.com/julienschmidt/httprouter
 # github.com/mozey/config v0.1.0
 ## explicit
 github.com/mozey/config/pkg/cmdconfig
+# github.com/mozey/logutil v0.0.0-20200614125649-f2c2c4d6f582
+## explicit
+github.com/mozey/logutil
 # github.com/pkg/errors v0.8.1
 ## explicit
 github.com/pkg/errors

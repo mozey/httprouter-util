@@ -17,6 +17,7 @@ then
   exit 1
 fi
 
+GOPATH=${GOPATH}
 TARGET=${1}
 
 # Depends lists, and can be used to check for, programs this script depends on
@@ -26,10 +27,10 @@ depends() {
         { printf >&2 \
             "Install https://golang.org\n"; exit 1; }
 
-    elif [[ ${1} == "fswatch" ]]; then
-        fswatch --version >/dev/null 2>&1 || \
+    elif [[ ${1} == "watcher" ]]; then
+        ${GOPATH}/bin/watcher -version >/dev/null 2>&1 || \
         { printf >&2 \
-            "Install https://github.com/emcrisostomo/fswatch\n"; exit 1; }
+            "Install https://github.com/mozey/watcher\n"; exit 1; }
 
     elif [[ ${1} == "jq" ]]; then
         jq --version >/dev/null 2>&1 || \
@@ -114,7 +115,7 @@ app_run() {
     app_build_dev; (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH} ); fi)
 }
 
-# Restart the binary (for use with fswatch).
+# Restart the binary.
 # Use full path to avoid conflicts
 app_restart() {
     echo ${FUNCNAME}
@@ -127,16 +128,12 @@ app_restart() {
 # Run app bin with live reload
 # Watch .go files for changes then recompile & try to start bin
 # will also kill bin on ctrl+c
-# fswatch includes everything unless an exclusion filter says otherwise
-# https://stackoverflow.com/a/37237681/639133
 app() {
     echo ${FUNCNAME}
-    depends fswatch
+    depends watcher
     app_restart
-    fswatch -or --exclude ".*" \
-    --include "^.*pkg.*go$" \
-    --include "./main.go$" \
-    --include "./middleware.go$" ./ | \
+    APP_DIR=${APP_DIR}
+    ${GOPATH}/bin/watcher -d 1500 -r -dir "" --include ".*.go$" | \
 	xargs -n1 bash -c "./make.sh app_restart" || bash -c "./make.sh app_kill"
 }
 

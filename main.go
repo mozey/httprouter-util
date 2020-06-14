@@ -6,8 +6,8 @@ import (
 	gh "github.com/gorilla/handlers"
 	"github.com/julienschmidt/httprouter"
 	"github.com/mozey/httprouter-example/pkg/config"
-	"github.com/mozey/httprouter-example/pkg/logutil"
 	"github.com/mozey/httprouter-example/pkg/response"
+	"github.com/mozey/logutil"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
@@ -85,7 +85,7 @@ func (h *Handler) NotFound(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Proxy(w http.ResponseWriter, r *http.Request) {
 	response.JSON(http.StatusNotImplemented, w, r, map[string]string{
 		"Message": "Not implemented",
-		"Proxy": h.Config.Proxy(),
+		"Proxy":   h.Config.Proxy(),
 	})
 }
 

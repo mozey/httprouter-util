@@ -11,6 +11,8 @@ github.com/mozey/config v0.0.0-20200503112605-8a9f2c22c94e h1:G/hBEz1iYzLfRTgTL3
 github.com/mozey/config v0.0.0-20200503112605-8a9f2c22c94e/go.mod h1:HRAWF6S2PfcN+wA3qWOXm1PGUzFgVdewGbRCt47s5qU=
 github.com/mozey/config v0.1.0 h1:fFc4QIUyDqmBzUAnCSUaOTgJr/XcMBBulOAX00DbN4I=
 github.com/mozey/config v0.1.0/go.mod h1:HRAWF6S2PfcN+wA3qWOXm1PGUzFgVdewGbRCt47s5qU=
+github.com/mozey/logutil v0.0.0-20200614125649-f2c2c4d6f582 h1:sPcTkaHaoVIqW8YZxv/fDtl0yUo9Z3t+lUsSjSsTOYY=
+github.com/mozey/logutil v0.0.0-20200614125649-f2c2c4d6f582/go.mod h1:4rTh4exS/DDt+79GGkvXU5/Hs7zWrFTMBi+pCgg8INk=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
