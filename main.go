@@ -99,9 +99,7 @@ func main() {
 
 	// Router
 	router := httprouter.New()
-	router.PanicHandler = PanicHandler(&PanicHandlerOptions{
-		PrintStack: h.Config.Dev() == "true",
-	})
+	router.PanicHandler = PanicHandler()
 	router.NotFound = http.HandlerFunc(h.NotFound)
 
 	// Routes
@@ -113,9 +111,15 @@ func main() {
 	router.HandlerFunc("GET", "/api", h.API)
 	router.HandlerFunc("GET", "/panic", h.Panic)
 	router.HandlerFunc("GET", "/hello/:name", h.Hello)
-	// TODO Proxy
+	// TODO Example endpoint for proxying external service
 	router.HandlerFunc("GET", "/proxy", h.Proxy)
 	router.HandlerFunc("GET", "/proxy/*filepath", h.Proxy)
+	// TODO Example endpoint for basic auth
+	// ...
+	// TODO Example endpoint for basic auth
+	// ...
+	// TODO Example endpoint for identity management (e.g. AWS IAM)
+	// ...
 	// Static content
 	router.ServeFiles("/www/*filepath", http.Dir("www"))
 

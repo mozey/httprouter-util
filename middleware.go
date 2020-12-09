@@ -14,23 +14,11 @@ import (
 
 type PanicHandlerFunc func(http.ResponseWriter, *http.Request, interface{})
 
-type PanicHandlerOptions struct {
-	PrintStack bool
-}
-
-func PanicHandler(o *PanicHandlerOptions) PanicHandlerFunc {
+func PanicHandler() PanicHandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, rcv interface{}) {
-		ctx := r.Context()
-		err := fmt.Errorf("%s", rcv)
-		response.JSON(http.StatusInternalServerError, w, r, response.Response{
-			Message: err.Error(),
-		})
-		if o.PrintStack {
-			// Use zerolog to print stack trace
-			// https://github.com/rs/zerolog/pull/35
-			err := errors.Wrap(err, "recovered panic")
-			log.Ctx(ctx).Error().Stack().Err(err).Msg("")
-		}
+		err := errors.WithStack(fmt.Errorf("%s", rcv))
+		// response.JSON must print stack if resp type is error
+		response.JSON(http.StatusInternalServerError, w, r, err)
 	}
 }
 
@@ -179,7 +167,6 @@ func AuthMiddleware(next http.Handler, o *AuthOptions) http.Handler {
 		if token != "123" {
 			resp := response.ErrResponse{
 				Message: "invalid token",
-
 			}
 			requestID, ok :=
 				r.Context().Value(response.HeaderXRequestID).(string)
