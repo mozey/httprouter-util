@@ -78,11 +78,21 @@ Static content skips the token check
     
 [http://localhost:8118/does/not/exist?token=123](http://localhost:8118/does/not/exist?token=123)
 
-**TODO** Use http.MaxBytesReader to limit POST body.
+Use http.MaxBytesReader to limit POST body.
 Make the [request with specified body size](https://serverfault.com/a/283297),
 Assuming `MaxBytes` is set to 1 KiB the request below will fail
 ```
 dd if=/dev/urandom bs=1 count=1025 | http POST "http://localhost:8118/api?token=123"
+```
+
+**TODO** More settings to protect against malicious clients
+```
+# ReadTimeout
+
+# WriteTimeout
+
+# MaxHeaderBytes
+
 ```
 
 **TODO** Proxy request to external service

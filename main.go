@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Handler struct {
@@ -157,7 +158,16 @@ func main() {
 		fmt.Println(".....")
 	}
 
+	var srv http.Server
+	srv.Handler = handler
+	srv.Addr = h.Config.Addr()
+
+	// More settings to protect against malicious clients
+	srv.ReadTimeout = 2 * time.Second
+	srv.WriteTimeout = 2 * srv.ReadTimeout
+	srv.MaxHeaderBytes = int(1 * units.KiB)
+
 	log.Info().Msgf("listening on %s", h.Config.Addr())
-	err := errors.WithStack(http.ListenAndServe(h.Config.Addr(), handler))
+	err := errors.WithStack(srv.ListenAndServe())
 	log.Fatal().Stack().Err(err).Msg("") // Don't override err, use empty msg
 }
