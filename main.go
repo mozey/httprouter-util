@@ -1,9 +1,8 @@
 package main
 
 import (
-	"compress/gzip"
 	"fmt"
-	gh "github.com/gorilla/handlers"
+	"github.com/NYTimes/gziphandler"
 	"github.com/julienschmidt/httprouter"
 	"github.com/mozey/httprouter-example/pkg/config"
 	"github.com/mozey/httprouter-example/pkg/response"
@@ -109,6 +108,7 @@ func main() {
 	router.HandlerFunc("GET", "/favicon.ico", h.Favicon)
 	// Misc
 	router.HandlerFunc("GET", "/api", h.API)
+	router.HandlerFunc("POST", "/api", h.API)
 	router.HandlerFunc("GET", "/panic", h.Panic)
 	router.HandlerFunc("GET", "/hello/:name", h.Hello)
 	// TODO Example endpoint for proxying external service
@@ -132,7 +132,7 @@ func main() {
 	handler = AuthMiddleware(handler, &AuthOptions{
 		Skipper: AuthSkipper,
 	})
-	handler = gh.CompressHandlerLevel(handler, gzip.BestSpeed)
+	handler = gziphandler.GzipHandler(handler)
 	handler = RequestIDMiddleware(handler)
 
 	if h.Config.Dev() == "true" {

@@ -1,8 +1,10 @@
+# github.com/NYTimes/gziphandler v1.1.1
+## explicit
+github.com/NYTimes/gziphandler
 # github.com/davecgh/go-spew v1.1.0
 github.com/davecgh/go-spew/spew
 # github.com/gorilla/handlers v1.4.2
 ## explicit
-github.com/gorilla/handlers
 # github.com/julienschmidt/httprouter v1.3.0
 ## explicit
 github.com/julienschmidt/httprouter
