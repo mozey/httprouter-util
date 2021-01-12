@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1
+	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4
 	github.com/gorilla/handlers v1.4.2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/mozey/config v0.1.0

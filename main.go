@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/NYTimes/gziphandler"
+	"github.com/alecthomas/units"
 	"github.com/julienschmidt/httprouter"
 	"github.com/mozey/httprouter-example/pkg/config"
 	"github.com/mozey/httprouter-example/pkg/response"
@@ -58,6 +59,14 @@ func (h *Handler) Favicon(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) API(w http.ResponseWriter, r *http.Request) {
+	// Read body
+	_, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		response.JSON(
+			http.StatusInternalServerError, w, r, errors.WithStack(err))
+		return
+	}
+
 	response.JSON(http.StatusOK, w, r, response.Response{
 		Message: "Welcome",
 	})
@@ -127,6 +136,10 @@ func main() {
 	var handler http.Handler = router
 	// WARNING Allows all origins
 	handler = cors.Default().Handler(router)
+	log.Info().Msgf("MaxBytes %v", int64(1 * units.KiB))
+	handler = MaxBytesHandler(handler, &MaxBytesHandlerOptions{
+		MaxBytes: int64(1 * units.KiB),
+	})
 	handler = LogRequestMiddleware(handler)
 	handler = LoggerMiddleware(handler)
 	handler = AuthMiddleware(handler, &AuthOptions{
@@ -143,6 +156,7 @@ func main() {
 		fmt.Println("....")
 		fmt.Println(".....")
 	}
+
 	log.Info().Msgf("listening on %s", h.Config.Addr())
 	err := errors.WithStack(http.ListenAndServe(h.Config.Addr(), handler))
 	log.Fatal().Stack().Err(err).Msg("") // Don't override err, use empty msg

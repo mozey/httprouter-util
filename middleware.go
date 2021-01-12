@@ -183,3 +183,16 @@ func AuthMiddleware(next http.Handler, o *AuthOptions) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+type MaxBytesHandlerOptions struct {
+	MaxBytes int64
+}
+
+// MaxBytesHandler middleware can be used to limit POST body
+// https://stackoverflow.com/a/28292505/639133
+func MaxBytesHandler(next http.Handler, o *MaxBytesHandlerOptions) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Body = http.MaxBytesReader(w, r.Body, o.MaxBytes)
+		next.ServeHTTP(w, r)
+	})
+}
