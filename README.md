@@ -88,11 +88,14 @@ dd if=/dev/urandom bs=1 count=1025 | http POST "http://localhost:8118/api?token=
 **TODO** More settings to protect against malicious clients
 ```
 # ReadTimeout
+# https://godoc.org/net/http#Server.ReadTimeout
 
 # WriteTimeout
+# https://godoc.org/net/http#Server.WriteTimeout
 
 # MaxHeaderBytes
-
+# https://godoc.org/net/http#Server.MaxHeaderBytes
+gotest -v ./... -run TestMaxHeaderBytes
 ```
 
 **TODO** Proxy request to external service

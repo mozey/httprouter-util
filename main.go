@@ -133,11 +133,11 @@ func main() {
 	// Static content
 	router.ServeFiles("/www/*filepath", http.Dir("www"))
 
+	// TODO Move max bytes and timeout settings below to config file
 	// Middleware
 	var handler http.Handler = router
 	// WARNING Allows all origins
 	handler = cors.Default().Handler(router)
-	log.Info().Msgf("MaxBytes %v", int64(1 * units.KiB))
 	handler = MaxBytesHandler(handler, &MaxBytesHandlerOptions{
 		MaxBytes: int64(1 * units.KiB),
 	})
@@ -149,23 +149,23 @@ func main() {
 	handler = gziphandler.GzipHandler(handler)
 	handler = RequestIDMiddleware(handler)
 
+	var srv http.Server
+	srv.Handler = handler
+	srv.Addr = h.Config.Addr()
+
+	// Settings to protect against malicious clients
+	srv.ReadTimeout = 2 * time.Second
+	srv.WriteTimeout = 2 * srv.ReadTimeout
+	srv.MaxHeaderBytes = int(1 * units.KiB)
+
 	if h.Config.Dev() == "true" {
-		// Header to make apps more visible on dev
+		// Header to make app reloads more visible on dev
 		fmt.Println(".")
 		fmt.Println("..")
 		fmt.Println("...")
 		fmt.Println("....")
 		fmt.Println(".....")
 	}
-
-	var srv http.Server
-	srv.Handler = handler
-	srv.Addr = h.Config.Addr()
-
-	// More settings to protect against malicious clients
-	srv.ReadTimeout = 2 * time.Second
-	srv.WriteTimeout = 2 * srv.ReadTimeout
-	srv.MaxHeaderBytes = int(1 * units.KiB)
 
 	log.Info().Msgf("listening on %s", h.Config.Addr())
 	err := errors.WithStack(srv.ListenAndServe())
