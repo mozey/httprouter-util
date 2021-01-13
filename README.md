@@ -85,16 +85,17 @@ Assuming `MaxBytes` is set to 1 KiB the request below will fail
 dd if=/dev/urandom bs=1 count=1025 | http POST "http://localhost:8118/api?token=123"
 ```
 
-**TODO** More settings to protect against malicious clients
+Settings to protect against malicious clients.
+NOTE The response body for errors below is not JSON,
+it's not possible to override string response hard-coded in Golang SDK
 ```
 # ReadTimeout
-# https://godoc.org/net/http#Server.ReadTimeout
+gotest -v ./... -run TestReadTimeout
 
 # WriteTimeout
-# https://godoc.org/net/http#Server.WriteTimeout
+gotest -v ./... -run TestWriteTimeout
 
 # MaxHeaderBytes
-# https://godoc.org/net/http#Server.MaxHeaderBytes
 gotest -v ./... -run TestMaxHeaderBytes
 ```
 

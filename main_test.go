@@ -11,8 +11,18 @@ import (
 	"testing"
 )
 
-func TestMaxHeaderBytes(t *testing.T) {
+// https://godoc.org/net/http#Server.ReadTimeout
+func TestReadTimeout(t *testing.T) {
+	// TODO
+}
 
+// https://godoc.org/net/http#Server.WriteTimeout
+func TestWriteTimeout(t *testing.T) {
+	// TODO
+}
+
+// https://godoc.org/net/http#Server.MaxHeaderBytes
+func TestMaxHeaderBytes(t *testing.T) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest(

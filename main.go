@@ -154,7 +154,7 @@ func main() {
 	srv.Addr = h.Config.Addr()
 
 	// Settings to protect against malicious clients
-	srv.ReadTimeout = 2 * time.Second
+	srv.ReadTimeout = 5 * time.Second
 	srv.WriteTimeout = 2 * srv.ReadTimeout
 	srv.MaxHeaderBytes = int(1 * units.KiB)
 
