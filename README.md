@@ -109,6 +109,39 @@ gotest -v ./... -run TestMaxHeaderBytes
 Make requests from the cli with [httpie](https://httpie.org/)
 
 
+# Client
+
+Example client with self-update feature
+
+Build client, download, and print version
+```
+conf
+APP_CLIENT_VERSION=0.1.0 ./scripts/build.client.sh
+./dist/client -version
+http -d http://localhost:8118/client/download?token=123 -o client
+chmod u+x client
+./client -version
+```
+
+New build
+```
+APP_CLIENT_VERSION=0.2.0 ./scripts/build.client.sh
+./dist/client -version
+http http://localhost:8118/client/version?token=123
+```
+
+Update from the server and print new version
+```
+./client -update
+./client -version
+```
+
+NOTE Running update again prints version is the latest message
+```
+./client -update
+```
+
+
 ## Reset
 
 Removes all user config

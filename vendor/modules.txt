@@ -8,6 +8,11 @@ github.com/alecthomas/units
 github.com/davecgh/go-spew/spew
 # github.com/gorilla/handlers v1.4.2
 ## explicit
+# github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf
+## explicit
+github.com/inconshreveable/go-update
+github.com/inconshreveable/go-update/internal/binarydist
+github.com/inconshreveable/go-update/internal/osext
 # github.com/julienschmidt/httprouter v1.3.0
 ## explicit
 github.com/julienschmidt/httprouter

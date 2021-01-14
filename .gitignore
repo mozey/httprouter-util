@@ -14,11 +14,11 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-config.dev.json
-config
-!vendor/github.com/mozey/config
-dev.sh
-up.sh
-down.sh
+/client
+/config.dev.json
+/config
+/dev.sh
+/up.sh
+/down.sh
 
-dist
+/dist

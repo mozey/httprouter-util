@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -22,41 +23,26 @@ type Handler struct {
 }
 
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
-	f, err := os.Open("www/index.html")
+	f, err := os.Open(filepath.Join(h.Config.Dir(), "www", "index.html"))
 	if err != nil {
-		response.JSON(http.StatusInternalServerError, w, r, response.Response{
-			Message: "Index page not found",
-		})
+		log.Error().Stack().Err(err).Msg("")
+		response.JSON(http.StatusInternalServerError, w, r,
+			errors.WithStack(fmt.Errorf("index not found")))
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		response.JSON(http.StatusInternalServerError, w, r, response.Response{
-			Message: "Error reading index page",
-		})
+		log.Error().Stack().Err(err).Msg("")
+		response.JSON(http.StatusInternalServerError, w, r,
+			errors.WithStack(fmt.Errorf("error reading index")))
 		return
 	}
-	_, _ = fmt.Fprintf(w, string(b)) // Write string
+	response.Write(http.StatusOK, "", w, r, b)
 }
 
 func (h *Handler) Favicon(w http.ResponseWriter, r *http.Request) {
-	f, err := os.Open("www/favicon.ico")
-	if err != nil {
-		response.JSON(http.StatusInternalServerError, w, r, response.Response{
-			Message: "favicon not found",
-		})
-		return
-	}
-	w.WriteHeader(http.StatusOK)
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		response.JSON(http.StatusInternalServerError, w, r, response.Response{
-			Message: "Error reading favicon",
-		})
-		return
-	}
-	_, _ = w.Write(b) // Write bytes
+	faviconPath := filepath.Join(h.Config.Dir(), "www", "favicon.ico")
+	http.ServeFile(w, r, faviconPath)
 }
 
 func (h *Handler) API(w http.ResponseWriter, r *http.Request) {
@@ -73,21 +59,44 @@ func (h *Handler) API(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// ClientVersion prints the latest client version
+func (h *Handler) ClientVersion(w http.ResponseWriter, r *http.Request) {
+	f, err := os.Open(filepath.Join(h.Config.Dir(), "dist", "client.version"))
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		response.JSON(http.StatusInternalServerError, w, r,
+			errors.WithStack(fmt.Errorf("client.version not found")))
+		return
+	}
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		response.JSON(http.StatusInternalServerError, w, r,
+			errors.WithStack(fmt.Errorf("error reading client.version")))
+		return
+	}
+	response.Write(http.StatusOK, "", w, r, b)
+}
+
+// ClientDownload serves the latest client
+func (h *Handler) ClientDownload(w http.ResponseWriter, r *http.Request) {
+	clientPath := filepath.Join(h.Config.Dir(), "dist", "client")
+	http.ServeFile(w, r, clientPath)
+}
+
 func (h *Handler) Panic(w http.ResponseWriter, r *http.Request) {
 	panic("Oops!")
 }
 
 func (h *Handler) Hello(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
-	// DANGER Don't use the response helper.
-	// Write headers and response right here in the handler
-	w.WriteHeader(http.StatusAccepted)
-	_, _ = fmt.Fprintf(w, "hello, %s!\n", params.ByName("name"))
+	response.Write(http.StatusOK, "", w, r,
+		[]byte(fmt.Sprintf("hello, %s!\n", params.ByName("name"))))
 }
 
 func (h *Handler) NotFound(w http.ResponseWriter, r *http.Request) {
 	response.JSON(http.StatusNotFound, w, r, response.Response{
-		Message: fmt.Sprintf("%v not found", r.URL.Path),
+		Message: fmt.Sprintf("invalid route %v", r.URL.Path),
 	})
 }
 
@@ -126,12 +135,13 @@ func main() {
 	router.HandlerFunc("GET", "/proxy/*filepath", h.Proxy)
 	// TODO Example endpoint for basic auth
 	// ...
-	// TODO Example endpoint for basic auth
-	// ...
 	// TODO Example endpoint for identity management (e.g. AWS IAM)
 	// ...
 	// Static content
 	router.ServeFiles("/www/*filepath", http.Dir("www"))
+	// Client
+	router.HandlerFunc("GET", "/client/download", h.ClientDownload)
+	router.HandlerFunc("GET", "/client/version", h.ClientVersion)
 
 	// TODO Move max bytes and timeout settings below to config file
 	// Middleware

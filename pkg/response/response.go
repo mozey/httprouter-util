@@ -100,7 +100,7 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 	}
 
 	// Write headers
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(code) // Must be called after w.Header().Set?
 
 	// Some of the properties below are also set in the logrequest middleware,
@@ -126,7 +126,6 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 		Str("request_path", string(r.URL.Path)).
 		Str("request_query", query).
 		Str("remote_addr", string(r.RemoteAddr)).
-		Bool("log_to_es", false).
 		Msg(msg)
 
 	// Write response
@@ -153,7 +152,7 @@ func Write(code int, contentType string, w http.ResponseWriter, r *http.Request,
 	// otherwise status code is not logged.
 	log.Ctx(ctx).Info().Int("code", code).
 		Str("method", r.Method).
-		Str("request_uri", string(r.RequestURI)).
+		Str("request_uri", r.RequestURI).
 		Msg(http.StatusText(code))
 
 	_, err := fmt.Fprint(w, string(b))
