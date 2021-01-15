@@ -9,7 +9,7 @@ GOPATH=${GOPATH}
 # Safety check for working on multiple projects
 if [[ "${APP_DIR}" != $(pwd) ]]; then
   echo "To avoid clobbering files in other projects run this in APP_DIR, e.g."
-  echo "  APP_DIR=\$(pwd) ./script/config.sh"
+  echo "  APP_DIR=\$(pwd) ./scripts/config.sh"
   exit 1
 fi
 cd ${APP_DIR}
