@@ -20,6 +20,8 @@ type ErrResponse struct {
 	RequestID string `json:"request_id"`
 }
 
+type JSONRaw string
+
 // HeaderXRequestID ...
 const HeaderXRequestID = "X-Request-ID"
 
@@ -45,6 +47,9 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 	var err error
 	indent := "    "
 	switch v := resp.(type) {
+	case JSONRaw:
+		respStr = resp
+
 	case string:
 		msg = v
 		b, err = json.MarshalIndent(Response{Message: msg}, "", indent)

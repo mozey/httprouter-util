@@ -23,8 +23,15 @@ func TestJSON(t *testing.T) {
 	ctx = logger.WithContext(ctx)
 	req = req.WithContext(ctx)
 
-	// String
+	// JSONRaw
 	rec := httptest.NewRecorder()
+	resp := "{\"a\": 1}"
+	response.JSON(http.StatusOK, rec, req, response.JSONRaw(resp))
+	require.Equal(t, rec.Code, http.StatusOK, "invalid status code")
+	require.Contains(t, rec.Body.String(), resp, "unexpected body")
+
+	// String
+	rec = httptest.NewRecorder()
 	response.JSON(http.StatusOK, rec, req, "foo")
 	//dump, err := httputil.DumpResponse(rec.Result(), true)
 	//require.NoError(t, err)
