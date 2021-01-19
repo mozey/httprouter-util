@@ -20,8 +20,6 @@ type ErrResponse struct {
 	RequestID string `json:"request_id"`
 }
 
-type JSONRaw string
-
 // HeaderXRequestID ...
 const HeaderXRequestID = "X-Request-ID"
 
@@ -40,11 +38,6 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 		logEvent = log.Ctx(ctx).Error()
 	}
 
-	// NOTE Don't use log.Panic().Err(err).Msg(""),
-	// if ErrorFieldName is set to "message" this will override
-	// err.Error() with an empty string.
-	// Rather call panic(err) and let the PanicHandler do the logging
-
 	// Marshal indented response JSON,
 	// uses type switch to handle different resp types
 	var b []byte
@@ -52,14 +45,13 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 	var err error
 	indent := "    "
 	switch v := resp.(type) {
-	case JSONRaw:
-		respStr = resp
-
 	case string:
 		msg = v
 		b, err = json.MarshalIndent(Response{Message: msg}, "", indent)
 		if err != nil {
-			panic(errors.WithStack(err))
+			log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+			respStr = err.Error()
+			break
 		}
 		respStr = string(b)
 
@@ -78,14 +70,18 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 		}
 		b, err = json.MarshalIndent(errResp, "", indent)
 		if err != nil {
-			panic(errors.WithStack(err))
+			log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+			respStr = err.Error()
+			break
 		}
 		respStr = string(b)
 
 	default:
 		b, err = json.MarshalIndent(resp, "", indent)
 		if err != nil {
-			panic(errors.WithStack(err))
+			log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+			respStr = err.Error()
+			break
 		}
 		// Rather than using reflection or type casting,
 		// unmarshal the response to determine if a message property was set
@@ -110,7 +106,7 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 		// Set method and request_path on context for all logs?
 		return c.
 			Str("method", r.Method).
-			Str("request_path", string(r.URL.Path))
+			Str("request_path", r.URL.Path)
 	})
 
 	// Get query and remove token
@@ -123,15 +119,15 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 
 	logEvent.Int("code", code).
 		Str("method", r.Method).
-		Str("request_path", string(r.URL.Path)).
+		Str("request_path", r.URL.Path).
 		Str("request_query", query).
-		Str("remote_addr", string(r.RemoteAddr)).
+		Str("remote_addr", r.RemoteAddr).
 		Msg(msg)
 
 	// Write response
 	_, err = fmt.Fprint(w, respStr)
 	if err != nil {
-		panic(errors.Wrap(err, "write response"))
+		log.Error().Stack().Err(errors.WithStack(err)).Msg("")
 	}
 }
 
@@ -157,6 +153,6 @@ func Write(code int, contentType string, w http.ResponseWriter, r *http.Request,
 
 	_, err := fmt.Fprint(w, string(b))
 	if err != nil {
-		panic(errors.Wrap(err, "write response"))
+		log.Error().Stack().Err(errors.WithStack(err)).Msg("")
 	}
 }

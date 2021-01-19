@@ -31,7 +31,8 @@ func TestJSON(t *testing.T) {
 	//fmt.Println(string(dump))
 	require.Equal(t, rec.Code, http.StatusOK, "invalid status code")
 	require.Contains(t, rec.Body.String(), "foo", "unexpected body")
-	require.Equal(t, rec.Header().Get("Content-Type"), "application/json")
+	require.Equal(t, rec.Header().Get("Content-Type"),
+		"application/json; charset=UTF-8")
 
 	// Error
 	rec = httptest.NewRecorder()
@@ -39,17 +40,22 @@ func TestJSON(t *testing.T) {
 	response.JSON(http.StatusBadRequest, rec, req, errors.Wrap(err, "fiz"))
 	require.Equal(t, rec.Code, http.StatusBadRequest, "invalid status code")
 	require.Contains(t, rec.Body.String(), "fiz: buz", "unexpected body")
-	require.Equal(t, rec.Header().Get("Content-Type"), "application/json")
+	require.Equal(t, rec.Header().Get("Content-Type"),
+		"application/json; charset=UTF-8")
 
 	// Struct
 	type Custom struct {
 		Message string `json:"msg"`
+		Foo     string `json:"foo"`
 	}
 	rec = httptest.NewRecorder()
 	response.JSON(http.StatusAccepted, rec, req,
-		Custom{Message: "baz"})
+		Custom{Message: "baz", Foo: "bar"})
 	require.Equal(t, rec.Code, http.StatusAccepted, "invalid status code")
 	require.Contains(t, rec.Body.String(),
 		"\"msg\": \"baz\"", "unexpected body")
-	require.Equal(t, rec.Header().Get("Content-Type"), "application/json")
+	require.Contains(t, rec.Body.String(),
+		"\"foo\": \"bar\"", "unexpected body")
+	require.Equal(t, rec.Header().Get("Content-Type"),
+		"application/json; charset=UTF-8")
 }
