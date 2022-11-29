@@ -2,6 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/NYTimes/gziphandler"
 	"github.com/alecthomas/units"
 	"github.com/julienschmidt/httprouter"
@@ -11,11 +17,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 type Handler struct {
