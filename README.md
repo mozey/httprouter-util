@@ -8,56 +8,64 @@ and gorilla middleware [handlers](https://github.com/gorilla/handlers)
 ## Quick start
 
 Clone the repos (outside your GOPATH since this is a module)
+```bash
+git clone https://github.com/mozey/httprouter-example.git
 
-    git clone https://github.com/mozey/httprouter-example.git
-    
-    cd httprouter-example
+cd httprouter-example
+```
 
 Following the 12 factor app recommendation to
 [store config in the environment](https://12factor.net/config).
 Configuration is done using [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
 
 Generate script to export dev config
-
-    ./make.sh dev_sh 
+```bash
+./make.sh dev_sh 
+```
 
 Run dev server (no live reload)
-
-    source ./dev.sh && ./make.sh app_run
+```bash
+source ./dev.sh && ./make.sh app_run
+```
     
 Run dev server with live reload
-    
-    ./make.sh app
+```bash
+./make.sh app
+```
     
 **Alternatively**,
 use [mozey/config](https://github.com/mozey/config)
 to manage env with a flat config.json file.
 First setup a helper func for [toggling env](https://github.com/mozey/config#toggling-env).
 Then run the commands below
-    
-    APP_DIR=$(pwd) ./scripts/config.sh
-    
-    conf && ./make.sh app
+```bash
+APP_DIR=$(pwd) ./scripts/config.sh
+
+conf && ./make.sh app
+```
     
 Start up services 
 in [tmux](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux)
+```bash
+cp sample.up.sh up.sh
 
-    cp sample.up.sh up.sh
-    
-    ./up.sh
-    
-    ./tmux.sh app
-    # ctrl+b d
+./up.sh
+
+./tmux.sh app
+# ctrl+b d
+```
     
 Show running processes
-   
-    ps ax | grep ${APP_NAME}
+```bash
+ps ax | grep ${APP_NAME}
+```
     
 Shut down 
+```bash
+cp sample.down.sh down.sh
 
-    cp sample.down.sh down.sh
-    
-    ./down.sh 
+./down.sh 
+```
     
    
 ## Examples
@@ -81,14 +89,14 @@ Static content skips the token check
 Use http.MaxBytesReader to limit POST body.
 Make the [request with specified body size](https://serverfault.com/a/283297),
 Assuming `MaxBytes` is set to 1 KiB the request below will fail
-```
+```bash
 dd if=/dev/urandom bs=1 count=1025 | http POST "http://localhost:8118/api?token=123"
 ```
 
 Settings to protect against malicious clients.
 NOTE The response body for errors below is not JSON,
 it's not possible to override string response hard-coded in Golang SDK
-```
+```bash
 # ReadTimeout
 gotest -v ./... -run TestReadTimeout
 
@@ -106,7 +114,7 @@ gotest -v ./... -run TestMaxHeaderBytes
 [http://localhost:8118/db?sql=select * from color](http://localhost:8118/db?sql=select%20*%20from%20color)
     
 **NOTE** 
-Make requests from the cli with [httpie](https://httpie.org/)
+Make requests from the cli with [curlie](https://github.com/rs/curlie), instead of [httpie](https://httpie.org/)
 
 
 # Client
@@ -114,24 +122,24 @@ Make requests from the cli with [httpie](https://httpie.org/)
 Example client with self-update feature
 
 Build client, download, and print version
-```
+```bash
 conf
 APP_CLIENT_VERSION=0.1.0 ./scripts/build.client.sh
 ./dist/client -version
-http -d http://localhost:8118/client/download?token=123 -o client
+http -d "http://localhost:8118/client/download?token=123" -o client
 chmod u+x client
 ./client -version
 ```
 
 New build
-```
+```bash
 APP_CLIENT_VERSION=0.2.0 ./scripts/build.client.sh
 ./dist/client -version
-http http://localhost:8118/client/version?token=123
+http "http://localhost:8118/client/version?token=123"
 ```
 
 Update from the server and print new version
-```
+```bash
 ./client -update
 ./client -version
 ```
@@ -145,8 +153,9 @@ NOTE Running update again prints version is the latest message
 ## Reset
 
 Removes all user config
-
-    APP_DIR=$(pwd) ./scripts/reset.sh
+```bash
+APP_DIR=$(pwd) ./scripts/reset.sh
+```
 
 
 ## Dependencies
