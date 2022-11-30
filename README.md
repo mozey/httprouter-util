@@ -99,19 +99,27 @@ However, a better architecture is to use something like [Caddy](https://github.c
 
 ### gRPC
 
-**TODO** Implement in branch
+**TODO** See [branch #5](https://github.com/mozey/httprouter-example/pull/5)
 
-As per the docs for [connect-go](https://github.com/bufbuild/connect-go#connect), it's possible to query connect protocol API using both HTTP
-[http://localhost:8118/buf.connect.demo.eliza.v1.ElizaService/Say](http://localhost:8118/buf.connect.demo.eliza.v1.ElizaService/Say)
+Generate code from protobuf schema
+```bash
+go install github.com/bufbuild/buf/cmd/buf@latest
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go@latest
 
-And gRPC requests
+buf lint
+buf generate
+```
+
+As per [getting started docs](https://connect.build/docs/go/getting-started/) for [connect-go](https://github.com/bufbuild/connect-go#connect), it's possible to query connect protocol API using both HTTP
+[http://localhost:8118/connect.GreetService/Greet](http://localhost:8118/connect.GreetService/Greet), and gRPC requests
 ```bash
 go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 
 grpcurl \
-    -d '{"sentence": "I feel happy."}' \
-    demo.connect.build:443 \
-    buf.connect.demo.eliza.v1.ElizaService/Say
+    -d '{"name": "Jane"}' \
+    localhost:8118 \
+    connect.GreetService/Greet
 ```
 
 
@@ -119,7 +127,7 @@ grpcurl \
 
 Example client with self-update feature.
 
-**TODO** Embed client code generated from [protobuf schema](https://github.com/bufbuild/connect-go/blob/main/internal/proto/connect/ping/v1/ping.proto)
+**TODO** Embed client code generated from protobuf schema?
 
 ## Build
 
