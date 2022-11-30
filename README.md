@@ -85,6 +85,10 @@ gotest -v ./... -run TestWriteTimeout
 gotest -v ./... -run TestMaxHeaderBytes
 ```
 
+### OAuth
+
+**TODO** Implement in branch [issues/7](https://github.com/mozey/httprouter-example/issues/7)
+
 ### Proxy
 
 **TODO** Proxy request to external service?
