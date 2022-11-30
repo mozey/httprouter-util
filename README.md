@@ -39,8 +39,12 @@ Run dev server with live reload
 
 
 ## Examples
+
+Make requests from the cli with [curlie](https://github.com/rs/curlie)
   
-Token is required by default    
+### Authentication
+
+Token is required by default
 [http://localhost:8118/token/is/required/by/default](http://localhost:8118/token/is/required/by/default)
 
 Some routes may [skip the token check](https://github.com/mozey/httprouter-example/blob/connect-go/middleware.go#L119)
@@ -48,15 +52,21 @@ Some routes may [skip the token check](https://github.com/mozey/httprouter-examp
 - [http://localhost:8118/index.html](http://localhost:8118/index.html)
 - [http://localhost:8118/www/data/go.txt](http://localhost:8118/www/data/go.txt)
 
-Using the token:
+### Using the token
 
+For static files
 [http://localhost:8118/hello/foo?token=123](http://localhost:8118/hello/foo?token=123)
-    
+
+And API endpoints
 [http://localhost:8118/api?token=123](http://localhost:8118/api?token=123)
-    
+
+### Error handling
+
 [http://localhost:8118/panic](http://localhost:8118/panic)
     
 [http://localhost:8118/does/not/exist?token=123](http://localhost:8118/does/not/exist?token=123)
+
+### Configuration
 
 Use http.MaxBytesReader to limit POST body. Make the [request with specified body size](https://serverfault.com/a/283297), Assuming `MaxBytes` is set to 1 KiB the request below will fail
 ```bash
@@ -75,20 +85,45 @@ gotest -v ./... -run TestWriteTimeout
 gotest -v ./... -run TestMaxHeaderBytes
 ```
 
-**TODO** Proxy request to external service
+### Proxy
+
+**TODO** Proxy request to external service?
 [http://localhost:8118/proxy](http://localhost:8118/proxy)
-    
+
+However, a better architecture is to use something like [Caddy](https://github.com/caddyserver/caddy) as a HTTPS endpoint, API gateway, and reverse proxy. The Caddyfile for configuring this is quite simple, see [#6](https://github.com/mozey/httprouter-example/issues/6)
+
+### Services
+
 **TODO** Define services on the handler, e.g. DB connection
 [http://localhost:8118/db?sql=select * from color](http://localhost:8118/db?sql=select%20*%20from%20color)
 
-**NOTE** Make requests from the cli with [curlie](https://github.com/rs/curlie), instead of [httpie](https://httpie.org/)
+### gRPC
+
+**TODO** Implement in branch
+
+As per the docs for [connect-go](https://github.com/bufbuild/connect-go#connect), it's possible to query connect protocol API using both HTTP
+[http://localhost:8118/buf.connect.demo.eliza.v1.ElizaService/Say](http://localhost:8118/buf.connect.demo.eliza.v1.ElizaService/Say)
+
+And gRPC requests
+```bash
+go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+
+grpcurl \
+    -d '{"sentence": "I feel happy."}' \
+    demo.connect.build:443 \
+    buf.connect.demo.eliza.v1.ElizaService/Say
+```
 
 
 # Client
 
-Example client with self-update feature
+Example client with self-update feature.
 
-Build client, download, and print version
+**TODO** Embed client code generated from [protobuf schema](https://github.com/bufbuild/connect-go/blob/main/internal/proto/connect/ping/v1/ping.proto)
+
+## Build
+
+Build the client, download it, and print version
 ```bash
 source dev.sh
 
@@ -103,7 +138,9 @@ chmod u+x client
 ./client -version
 ```
 
-New build
+## Update
+
+Create a new build
 ```bash
 APP_CLIENT_VERSION=0.2.0 ./scripts/build-client.sh
 
