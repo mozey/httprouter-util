@@ -2,6 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/NYTimes/gziphandler"
 	"github.com/alecthomas/units"
 	"github.com/julienschmidt/httprouter"
@@ -11,11 +17,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"path/filepath"
-	"time"
 )
 
 type Handler struct {
@@ -100,11 +101,9 @@ func (h *Handler) NotFound(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) Proxy(w http.ResponseWriter, r *http.Request) {
-	response.JSON(http.StatusNotImplemented, w, r, map[string]string{
-		"Message": "Not implemented",
-		"Proxy":   h.Config.Proxy(),
-	})
+func (h *Handler) NotImplemented(w http.ResponseWriter, r *http.Request) {
+	response.JSON(http.StatusNotImplemented, w, r,
+		errors.Errorf(http.StatusText(http.StatusNotImplemented)))
 }
 
 func main() {
@@ -130,9 +129,11 @@ func main() {
 	router.HandlerFunc("POST", "/api", h.API)
 	router.HandlerFunc("GET", "/panic", h.Panic)
 	router.HandlerFunc("GET", "/hello/:name", h.Hello)
-	// TODO Example endpoint for proxying external service
-	router.HandlerFunc("GET", "/proxy", h.Proxy)
-	router.HandlerFunc("GET", "/proxy/*filepath", h.Proxy)
+	// TODO Example endpoint to proxy external service,
+	// probably better to use Caddy for this?
+	// https://github.com/mozey/httprouter-example/issues/6
+	router.HandlerFunc("GET", "/proxy", h.NotImplemented)
+	router.HandlerFunc("GET", "/proxy/*filepath", h.NotImplemented)
 	// TODO Example endpoint for basic auth
 	// ...
 	// TODO Example endpoint for identity management (e.g. AWS IAM)

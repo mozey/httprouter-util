@@ -6,42 +6,37 @@ EXPECTED_ARGS=1
 
 if [[ $# -lt ${EXPECTED_ARGS} ]]; then
   echo "Usage:"
-  echo "  $(basename $0) TARGET"
+  echo "  $(basename "$0") FUNC [ARGS...]"
   echo ""
-  echo "Execute the specified target"
+  echo "Execute the specified func"
   echo ""
   echo "Examples:"
-  echo "  $(basename $0) app"
-  echo "  $(basename $0) test"
+  echo "  $(basename "$0") depends go"
   exit 1
 fi
 
-GOPATH=${GOPATH}
-TARGET=${1}
+FUNC=${1}
 
-# Depends lists, and can be used to check for, programs this script depends on
+# depends checks for programs this script depends on
 depends() {
   if [[ ${1} == "go" ]]; then
     go version >/dev/null 2>&1 ||
       {
-        printf >&2 \
-          "Install https://golang.org\n"
+        echo "Install https://golang.org"
         exit 1
       }
 
   elif [[ ${1} == "watcher" ]]; then
-    ${GOPATH}/bin/watcher -version >/dev/null 2>&1 ||
+    "${GOPATH}"/bin/watcher -version >/dev/null 2>&1 ||
       {
-        printf >&2 \
-          "Install https://github.com/mozey/watcher\n"
+        echo "Install https://github.com/mozey/watcher"
         exit 1
       }
 
-  elif [[ ${1} == "jq" ]]; then
-    jq --version >/dev/null 2>&1 ||
+  elif [[ ${1} == "gojq" ]]; then
+    gojq --version >/dev/null 2>&1 ||
       {
-        printf >&2 \
-          "Install https://stedolan.github.io/jq\n"
+        echo "Install https://github.com/itchyny/gojq"
         exit 1
       }
 
@@ -50,8 +45,7 @@ depends() {
     TYPE=$(type -t gotest || echo "undefined")
     if [[ ${TYPE} != "file" ]]; then
       {
-        printf >&2 \
-          "Install https://github.com/rakyll/gotest\n"
+        echo "Install https://github.com/rakyll/gotest"
         exit 1
       }
     fi
@@ -62,6 +56,7 @@ depends() {
       # Error if APP_EXE is not set
       export APP_EXE=${APP_EXE}
       # Use full path to avoid conflicts
+      # shellcheck disable=2155
       export APP_EXE_PATH="$(pwd)/${APP_EXE}"
     fi
 
@@ -71,10 +66,22 @@ depends() {
   fi
 }
 
+# detect_os is useful when writing cross platform functions.
+# Return value must corrrespond to GOOS listed here
+# https://go.dev/doc/install/source#environment
+# shellcheck disable=2120
 detect_os() {
-  case "$(uname -s)" in
+  # Check if func arg is set
+  # https://stackoverflow.com/a/13864829/639133
+  if [ -z ${1+x} ]; then
+    OUTPUT=$(uname -s)
+  else
+    # This is useful when parsing output from a remote host
+    OUTPUT="$1"
+  fi
+  case "$OUTPUT" in
   Darwin)
-    echo 'macOS'
+    echo 'darwin'
     ;;
   Linux)
     echo 'linux'
@@ -91,13 +98,42 @@ detect_os() {
   esac
 }
 
+# detect_arch is useful when writing cross platform functions
+# Return value must corrrespond to GOARCH listed here
+# https://go.dev/doc/install/source#environment
+# shellcheck disable=2120
+detect_arch() {
+  # Check if func arg is set
+  # https://stackoverflow.com/a/13864829/639133
+  if [ -z ${1+x} ]; then
+    OUTPUT=$(uname -m)
+  else
+    # This is useful when parsing output from a remote host
+    OUTPUT="$1"
+  fi
+  case "$OUTPUT" in
+  amd64)
+    echo 'amd64'
+    ;;
+  x86_64)
+    echo 'amd64'
+    ;;
+  arm64)
+    echo 'arm64'
+    ;;
+  *)
+    echo 'other'
+    ;;
+  esac
+}
+
 # Kill process by matching full path to bin
 kill_path() {
   OS=$(detect_os)
-  if [[ ${OS} == "macOS" ]] || [[ ${OS} == "linux" ]]; then
+  if [[ ${OS} == "darwin" ]] || [[ ${OS} == "linux" ]]; then
     PID=$(pgrep -fx "${1}" || echo "")
     if [[ -n "${PID}" ]]; then
-      kill ${PID}
+      kill "${PID}"
     fi
   else
     echo "OS ${OS} not implemented"
@@ -106,47 +142,44 @@ kill_path() {
 }
 
 app_build_dev() {
-  echo ${FUNCNAME}
-  scripts/build.dev.sh
+  scripts/build-dev.sh
 }
 
 app_kill() {
-  echo ${FUNCNAME}
   depends APP_EXE_PATH
-  kill_path ${APP_EXE_PATH}
+  kill_path "${APP_EXE_PATH}"
 }
 
 # Run the binary, no live reload.
 # Use full path to avoid conflicts
 app_run() {
-  echo ${FUNCNAME}
   depends go
   depends APP_EXE_PATH
   app_kill
   app_build_dev
+  # shellcheck disable=2181
   (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH}); fi)
 }
 
 # Restart the binary.
 # Use full path to avoid conflicts
 app_restart() {
-  echo ${FUNCNAME}
   depends go
   depends APP_EXE_PATH
   app_kill
   app_build_dev
-  (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH} &); fi)
+  # shellcheck disable=2181
+  (if [[ "${?}" -eq 0 ]]; then (${APP_EXE_PATH} &) fi)
 }
 
 # Run app bin with live reload
 # Watch .go files for changes then recompile & try to start bin
 # will also kill bin on ctrl+c
 app() {
-  echo ${FUNCNAME}
   depends watcher
   app_restart
   APP_DIR=${APP_DIR}
-  ${GOPATH}/bin/watcher -d 1500 -r -dir "" \
+  "${GOPATH}"/bin/watcher -d 1500 -r -dir "" \
     --include ".*.go$" \
     --excludeDir "${APP_DIR}/cmd.*" \
     --excludeDir "${APP_DIR}/dist.*" \
@@ -156,61 +189,84 @@ app() {
     xargs -n1 bash -c "./make.sh app_restart" || bash -c "./make.sh app_kill"
 }
 
-# Generate dev.sh from config.dev.json
-dev_sh() {
-  echo ${FUNCNAME}
-  depends jq
+# env_sh generates ENV.sh from config.ENV.json
+env_sh() {
+  depends gojq
+  ENV=${1}
+  PROMPT=${2:-undefined}
 
-  read -r -p "Generate new dev.sh? [y/N] " response
-  if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
-    :
-  else
-    echo "abort"
-    exit 0
+  if [[ ! -d "$APP_DIR" ]]; then
+    echo "Dir $APP_DIR does not exist"
+    exit 1
   fi
 
-  SAMPLE_CONFIG="sample.config.dev.json"
-  CONFIG="config.dev.json"
-  DEV_SH="dev.sh"
+  if [[ ${PROMPT} != "PROMPT_DISABLED" ]]; then
+    read -r -p "Generate new ${ENV}.sh? [y/N] " response
+    if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
+      :
+    else
+      echo "abort"
+      exit 1
+    fi
+  fi
+
+  SAMPLE_CONFIG="$APP_DIR/sample.config.${ENV}.json"
+  CONFIG="$APP_DIR/config.${ENV}.json"
+  ENV_SH="$APP_DIR/${ENV}.sh"
 
   if [[ -f "${CONFIG}" ]]; then
-    echo "using existing config file"
+    echo "Using existing ${CONFIG}"
   else
-    echo "creating new ${CONFIG}"
-    cp ${SAMPLE_CONFIG} ${CONFIG}
+    echo "Creating new ${CONFIG}"
+    cp "${SAMPLE_CONFIG}" "${CONFIG}"
   fi
 
-  echo "#!/usr/bin/env bash" >${DEV_SH}
-  echo "# Generated from ${CONFIG} with make.sh, DO NOT EDIT!" >>${DEV_SH}
-  echo "" >>${DEV_SH}
-  echo "export APP_DIR=$(pwd)" >>${DEV_SH}
-  echo "" >>${DEV_SH}
+  echo "#!/usr/bin/env bash" >"${ENV_SH}"
+  {
+    echo "# ------------------------ DO NOT EDIT!"
+    echo "# Generated from $CONFIG"
+    echo "# Edit the JSON file to change your local config,"
+    echo "# then refresh $APP_DIR/$ENV.sh like this"
+    echo "#     ./make.sh env_sh $APP_DIR $ENV"
+    echo ""
+    echo "if [ -z \${APP_DIR+x} ]; then"
+    echo "    # Caller can override \$APP_DIR"
+    echo "    export APP_DIR=$APP_DIR"
+    echo "fi"
+    echo ""
+  } >>"${ENV_SH}"
 
   # Create array of key values
   # https://stackoverflow.com/a/23118607/639133
   KEY_VALUES=()
   while IFS='' read -r line; do
     KEY_VALUES+=("$line")
-  done < <(jq -r 'to_entries|map("\(.key)\n\(.value|tostring)")|.[]' ./${CONFIG})
+  done < <(gojq -r 'to_entries|map("\(.key)\n\(.value|tostring)")|.[]' "${CONFIG}")
   for ((i = 0; i < ${#KEY_VALUES[@]}; i = i + 2)); do
     KEY="${KEY_VALUES[$i]}"
     VALUE="${KEY_VALUES[$i + 1]}"
-    echo "export ${KEY}=\"${VALUE}\"" >>${DEV_SH}
+    echo "export ${KEY}=\"${VALUE}\"" >>"${ENV_SH}"
   done
 
-  echo "" >>${DEV_SH}
-  echo 'printenv | sort | grep --color -E "APP_|AWS_"' >>${DEV_SH}
+  echo "" >>"${ENV_SH}"
+  echo 'printenv | sort | grep --color -E "APP_|AWS_"' >>"${ENV_SH}"
 
-  chmod u+x ${DEV_SH}
+  chmod u+x "${ENV_SH}"
 }
 
-# Execute target if it's a func defined in this script.
-TYPE=$(type -t ${TARGET} || echo "undefined")
+# ..............................................................................
+
+# Required env vars
+APP_DIR=${APP_DIR}
+GOPATH=${GOPATH}
+
+# Execute FUNC if it's a func defined in this script
+TYPE=$(type -t "${FUNC}" || echo "undefined")
 if [[ ${TYPE} == "function" ]]; then
-  # Additional arguments, after the target, are passed through.
-  # For example, `./make.sh depends something`
-  ${TARGET} ${@:2}
+  # Additional arguments, after the func, are passed through.
+  # For example, `./make.sh FUNC ARG1`
+  ${FUNC} "${@:2}"
 else
-  echo "TARGET ${TARGET} not implemented"
+  echo "FUNC ${FUNC} not implemented"
   exit 1
 fi
