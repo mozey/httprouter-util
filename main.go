@@ -143,10 +143,6 @@ func main() {
 	// Client
 	router.HandlerFunc("GET", "/client/download", h.ClientDownload)
 	router.HandlerFunc("GET", "/client/version", h.ClientVersion)
-	// TODO Protobuf and gRPC example using connect-go
-	// https://github.com/mozey/httprouter-example/pull/5
-	path, greetService := "/connect", h.NotImplemented
-	router.HandlerFunc("POST", path, greetService)
 
 	// TODO Move max bytes and timeout settings below to config file
 	// Middleware
