@@ -3,9 +3,10 @@
 Example of using [httprouter](https://github.com/julienschmidt/httprouter)
 with 
 - [zerolog](https://github.com/rs/zerolog) for logging
-- Middleware
-- **TODO** Swagger docs
-- **TODO** Passwordless auth
+- [Middleware](https://github.com/gorilla/handlers): panic handler, request logging, request ID for tracing, token auth, max bytes handler, gzip
+- Graceful shutdown on ctrl+c
+- [Swagger](https://github.com/swaggo/swag) docs
+- [Caddy](https://caddyserver.com/) as a HTTPS endpoint, API gateway, and reverse proxy
 
 
 ## Quick start
