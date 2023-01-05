@@ -34,9 +34,14 @@ Run dev server (no live reload)
 ./make.sh app_run
 ```
 
-Run dev server with live reload
+Or run dev server with live reload
 ```bash
 ./make.sh app
+```
+
+Tests require running server
+```bash
+gotest -v ./...
 ```
 
 
@@ -103,8 +108,6 @@ However, a better architecture is to use something like [Caddy](https://github.c
 ## Client
 
 Example client with self-update feature.
-
-**TODO** Embed client code generated from protobuf schema?
 
 ### Build client
 

@@ -3,38 +3,37 @@
 package config
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 // APP_ADDR
 var addr string
 
-// APP_DEV
-var dev string
-
-// APP_DIR
-var dir string
-
 // APP_EXE
 var exe string
+
+// APP_MAX_BYTES_KB
+var maxBytesKb string
 
 // APP_NAME
 var name string
 
-// APP_PROXY
-var proxy string
+// APP_DIR
+var dir string
 
 // Config fields correspond to config file keys less the prefix
 type Config struct {
-	addr  string // APP_ADDR
-	dev   string // APP_DEV
-	dir   string // APP_DIR
-	exe   string // APP_EXE
-	name  string // APP_NAME
-	proxy string // APP_PROXY
+	addr       string // APP_ADDR
+	exe        string // APP_EXE
+	maxBytesKb string // APP_MAX_BYTES_KB
+	name       string // APP_NAME
+	dir        string // APP_DIR
 }
 
 // Addr is APP_ADDR
@@ -42,19 +41,14 @@ func (c *Config) Addr() string {
 	return c.addr
 }
 
-// Dev is APP_DEV
-func (c *Config) Dev() string {
-	return c.dev
-}
-
-// Dir is APP_DIR
-func (c *Config) Dir() string {
-	return c.dir
-}
-
 // Exe is APP_EXE
 func (c *Config) Exe() string {
 	return c.exe
+}
+
+// MaxBytesKb is APP_MAX_BYTES_KB
+func (c *Config) MaxBytesKb() string {
+	return c.maxBytesKb
 }
 
 // Name is APP_NAME
@@ -62,9 +56,9 @@ func (c *Config) Name() string {
 	return c.name
 }
 
-// Proxy is APP_PROXY
-func (c *Config) Proxy() string {
-	return c.proxy
+// Dir is APP_DIR
+func (c *Config) Dir() string {
+	return c.dir
 }
 
 // SetAddr overrides the value of addr
@@ -72,19 +66,14 @@ func (c *Config) SetAddr(v string) {
 	c.addr = v
 }
 
-// SetDev overrides the value of dev
-func (c *Config) SetDev(v string) {
-	c.dev = v
-}
-
-// SetDir overrides the value of dir
-func (c *Config) SetDir(v string) {
-	c.dir = v
-}
-
 // SetExe overrides the value of exe
 func (c *Config) SetExe(v string) {
 	c.exe = v
+}
+
+// SetMaxBytesKb overrides the value of maxBytesKb
+func (c *Config) SetMaxBytesKb(v string) {
+	c.maxBytesKb = v
 }
 
 // SetName overrides the value of name
@@ -92,9 +81,9 @@ func (c *Config) SetName(v string) {
 	c.name = v
 }
 
-// SetProxy overrides the value of proxy
-func (c *Config) SetProxy(v string) {
-	c.proxy = v
+// SetDir overrides the value of dir
+func (c *Config) SetDir(v string) {
+	c.dir = v
 }
 
 // New creates an instance of Config.
@@ -116,24 +105,20 @@ func SetVars(conf *Config) {
 		conf.addr = addr
 	}
 
-	if dev != "" {
-		conf.dev = dev
-	}
-
-	if dir != "" {
-		conf.dir = dir
-	}
-
 	if exe != "" {
 		conf.exe = exe
+	}
+
+	if maxBytesKb != "" {
+		conf.maxBytesKb = maxBytesKb
 	}
 
 	if name != "" {
 		conf.name = name
 	}
 
-	if proxy != "" {
-		conf.proxy = proxy
+	if dir != "" {
+		conf.dir = dir
 	}
 
 }
@@ -147,19 +132,14 @@ func SetEnv(conf *Config) {
 		conf.addr = v
 	}
 
-	v = os.Getenv("APP_DEV")
-	if v != "" {
-		conf.dev = v
-	}
-
-	v = os.Getenv("APP_DIR")
-	if v != "" {
-		conf.dir = v
-	}
-
 	v = os.Getenv("APP_EXE")
 	if v != "" {
 		conf.exe = v
+	}
+
+	v = os.Getenv("APP_MAX_BYTES_KB")
+	if v != "" {
+		conf.maxBytesKb = v
 	}
 
 	v = os.Getenv("APP_NAME")
@@ -167,17 +147,58 @@ func SetEnv(conf *Config) {
 		conf.name = v
 	}
 
-	v = os.Getenv("APP_PROXY")
+	v = os.Getenv("APP_DIR")
 	if v != "" {
-		conf.proxy = v
+		conf.dir = v
 	}
 
+}
+
+// GetMap of all env vars
+func (c *Config) GetMap() map[string]string {
+	m := make(map[string]string)
+
+	m["APP_ADDR"] = c.addr
+
+	m["APP_EXE"] = c.exe
+
+	m["APP_MAX_BYTES_KB"] = c.maxBytesKb
+
+	m["APP_NAME"] = c.name
+
+	m["APP_DIR"] = c.dir
+
+	return m
+}
+
+// SetEnvBase64 decodes and sets env from the given base64 string
+func SetEnvBase64(configBase64 string) (err error) {
+	// Decode base64
+	decoded, err := base64.StdEncoding.DecodeString(configBase64)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	// UnMarshall json
+	configMap := make(map[string]string)
+	err = json.Unmarshal(decoded, &configMap)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	// Set config
+	for key, value := range configMap {
+		err = os.Setenv(key, value)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	return nil
 }
 
 // LoadFile sets the env from file and returns a new instance of Config
 func LoadFile(mode string) (conf *Config, err error) {
 	appDir := os.Getenv("APP_DIR")
-	p := fmt.Sprintf("%v/config.%v.json", appDir, mode)
+	p := filepath.Join(appDir, fmt.Sprintf("config.%v.json", mode))
 	b, err := ioutil.ReadFile(p)
 	if err != nil {
 		return nil, err
