@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/mozey/httprouter-util/pkg/config"
 	"github.com/mozey/logutil"
@@ -8,9 +10,10 @@ import (
 )
 
 type Handler struct {
-	Config    *config.Config
-	Router    *httprouter.Router
-	FlushLogs func()
+	Config      *config.Config
+	Router      *httprouter.Router
+	HTTPHandler http.Handler
+	FlushLogs   func()
 }
 
 func NewHandler(conf *config.Config) (h *Handler) {

@@ -55,7 +55,7 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 		msg = v
 		b, err = json.MarshalIndent(Response{Message: msg}, "", indent)
 		if err != nil {
-			log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+			log.Ctx(ctx).Error().Stack().Err(errors.WithStack(err)).Msg("")
 			respStr = err.Error()
 			break
 		}
@@ -76,7 +76,7 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 		}
 		b, err = json.MarshalIndent(errResp, "", indent)
 		if err != nil {
-			log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+			log.Ctx(ctx).Error().Stack().Err(errors.WithStack(err)).Msg("")
 			respStr = err.Error()
 			break
 		}
@@ -85,7 +85,7 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 	default:
 		b, err = json.MarshalIndent(resp, "", indent)
 		if err != nil {
-			log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+			log.Ctx(ctx).Error().Stack().Err(errors.WithStack(err)).Msg("")
 			respStr = err.Error()
 			break
 		}
@@ -133,7 +133,7 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 	// Write response
 	_, err = fmt.Fprint(w, respStr)
 	if err != nil {
-		log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+		log.Ctx(ctx).Error().Stack().Err(errors.WithStack(err)).Msg("")
 	}
 }
 
@@ -159,6 +159,6 @@ func Write(code int, contentType string, w http.ResponseWriter, r *http.Request,
 
 	_, err := fmt.Fprint(w, string(b))
 	if err != nil {
-		log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+		log.Ctx(ctx).Error().Stack().Err(errors.WithStack(err)).Msg("")
 	}
 }
