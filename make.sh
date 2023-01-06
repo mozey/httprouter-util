@@ -26,6 +26,13 @@ depends() {
         exit 1
       }
 
+  elif [[ ${1} == "configu" ]]; then
+    configu --help >/dev/null 2>&1 ||
+      {
+        echo "Install https://github.com/mozey/config"
+        exit 1
+      }
+
   elif [[ ${1} == "watcher" ]]; then
     "${GOPATH}"/bin/watcher -version >/dev/null 2>&1 ||
       {
@@ -252,6 +259,16 @@ env_sh() {
   echo 'printenv | sort | grep --color -E "APP_|AWS_"' >>"${ENV_SH}"
 
   chmod u+x "${ENV_SH}"
+}
+
+# gen_pkg_config generates pkg/config
+gen_pkg_config() {
+    depends configu
+    cd "$APP_DIR"
+    configu -generate ./pkg/config
+    go fmt ./pkg/config/config.go || :
+    go fmt ./pkg/config/fn.go || :
+    go fmt ./pkg/config/template.go || :
 }
 
 # ..............................................................................

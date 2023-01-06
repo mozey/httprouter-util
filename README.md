@@ -1,19 +1,22 @@
-# httprouter-example
+# httprouter-util
 
-Example of using [httprouter](https://github.com/julienschmidt/httprouter)
+Examples of using [httprouter](https://github.com/julienschmidt/httprouter)
 with 
 - [zerolog](https://github.com/rs/zerolog) for logging
-- Middleware
-- **TODO** Swagger docs
-- **TODO** Passwordless auth
+- [Middleware](https://github.com/gorilla/handlers): panic handler, request logging, request ID for tracing, token auth, max bytes handler, gzip
+- Graceful shutdown on ctrl+c
+- [Swagger](https://github.com/swaggo/swag) docs
+- [Caddy](https://caddyserver.com/) as a HTTPS endpoint, API gateway, and reverse proxy
+
+This repo is not intended for use as a "framework", however, other projects may import the packages in `pkg`. The code in `internal` is specific to this app, and must not be imported by other projects
 
 
 ## Quick start
 
 Clone the repo (outside your GOPATH since this is a module)
 ```bash
-git clone https://github.com/mozey/httprouter-example.git
-cd httprouter-example # This is the APP_DIR
+git clone https://github.com/mozey/httprouter-util.git
+cd httprouter-util # This is the APP_DIR
 ```
 
 Following the 12 factor app recommendation to [store config in the environment](https://12factor.net/config). Configuration is done using [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
@@ -33,9 +36,14 @@ Run dev server (no live reload)
 ./make.sh app_run
 ```
 
-Run dev server with live reload
+Or run dev server with live reload
 ```bash
 ./make.sh app
+```
+
+Tests require running server
+```bash
+gotest -v ./...
 ```
 
 
@@ -48,7 +56,7 @@ Make requests from the cli with [curlie](https://github.com/rs/curlie)
 Token is required by default
 [http://localhost:8118/token/is/required/by/default](http://localhost:8118/token/is/required/by/default)
 
-Some routes may [skip the token check](https://github.com/mozey/httprouter-example/blob/connect-go/middleware.go#L119)
+Some routes may [skip the token check](https://github.com/mozey/httprouter-util/blob/connect-go/middleware.go#L119)
 - [http://localhost:8118](http://localhost:8118)
 - [http://localhost:8118/index.html](http://localhost:8118/index.html)
 - [http://localhost:8118/www/data/go.txt](http://localhost:8118/www/data/go.txt)
@@ -91,7 +99,7 @@ gotest -v ./... -run TestMaxHeaderBytes
 **TODO** Proxy request to external service?
 [http://localhost:8118/proxy](http://localhost:8118/proxy)
 
-However, a better architecture is to use something like [Caddy](https://github.com/caddyserver/caddy) as a HTTPS endpoint, API gateway, and reverse proxy. The Caddyfile for configuring this is quite simple, see [#6](https://github.com/mozey/httprouter-example/issues/6)
+However, a better architecture is to use something like [Caddy](https://github.com/caddyserver/caddy) as a HTTPS endpoint, API gateway, and reverse proxy. The Caddyfile for configuring this is quite simple, see [#6](https://github.com/mozey/httprouter-util/issues/6)
 
 ### Services
 
@@ -102,8 +110,6 @@ However, a better architecture is to use something like [Caddy](https://github.c
 ## Client
 
 Example client with self-update feature.
-
-**TODO** Embed client code generated from protobuf schema?
 
 ### Build client
 
