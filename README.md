@@ -1,4 +1,4 @@
-# httprouter-example
+# httprouter-util
 
 Examples of using [httprouter](https://github.com/julienschmidt/httprouter)
 with 
@@ -15,8 +15,8 @@ This repo is not intended for use as a "framework", however, other projects may 
 
 Clone the repo (outside your GOPATH since this is a module)
 ```bash
-git clone https://github.com/mozey/httprouter-example.git
-cd httprouter-example # This is the APP_DIR
+git clone https://github.com/mozey/httprouter-util.git
+cd httprouter-util # This is the APP_DIR
 ```
 
 Following the 12 factor app recommendation to [store config in the environment](https://12factor.net/config). Configuration is done using [environment variables](https://en.wikipedia.org/wiki/Environment_variable)
@@ -56,7 +56,7 @@ Make requests from the cli with [curlie](https://github.com/rs/curlie)
 Token is required by default
 [http://localhost:8118/token/is/required/by/default](http://localhost:8118/token/is/required/by/default)
 
-Some routes may [skip the token check](https://github.com/mozey/httprouter-example/blob/connect-go/middleware.go#L119)
+Some routes may [skip the token check](https://github.com/mozey/httprouter-util/blob/connect-go/middleware.go#L119)
 - [http://localhost:8118](http://localhost:8118)
 - [http://localhost:8118/index.html](http://localhost:8118/index.html)
 - [http://localhost:8118/www/data/go.txt](http://localhost:8118/www/data/go.txt)
@@ -99,7 +99,7 @@ gotest -v ./... -run TestMaxHeaderBytes
 **TODO** Proxy request to external service?
 [http://localhost:8118/proxy](http://localhost:8118/proxy)
 
-However, a better architecture is to use something like [Caddy](https://github.com/caddyserver/caddy) as a HTTPS endpoint, API gateway, and reverse proxy. The Caddyfile for configuring this is quite simple, see [#6](https://github.com/mozey/httprouter-example/issues/6)
+However, a better architecture is to use something like [Caddy](https://github.com/caddyserver/caddy) as a HTTPS endpoint, API gateway, and reverse proxy. The Caddyfile for configuring this is quite simple, see [#6](https://github.com/mozey/httprouter-util/issues/6)
 
 ### Services
 

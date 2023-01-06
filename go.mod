@@ -1,4 +1,4 @@
-module github.com/mozey/httprouter-example
+module github.com/mozey/httprouter-util
 
 go 1.14
 

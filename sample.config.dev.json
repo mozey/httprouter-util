@@ -2,5 +2,5 @@
     "APP_ADDR": ":8118",
     "APP_EXE": "dist/app",
     "APP_MAX_BYTES_KB": "1",
-    "APP_NAME": "httprouter-example"
+    "APP_NAME": "httprouter-util"
 }

@@ -11,8 +11,9 @@ import (
 	"github.com/NYTimes/gziphandler"
 	"github.com/alecthomas/units"
 	"github.com/julienschmidt/httprouter"
-	"github.com/mozey/httprouter-example/pkg/config"
-	"github.com/mozey/httprouter-example/pkg/response"
+	"github.com/mozey/httprouter-util/pkg/config"
+	"github.com/mozey/httprouter-util/pkg/middleware"
+	"github.com/mozey/httprouter-util/pkg/response"
 	"github.com/mozey/logutil"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -64,8 +65,8 @@ func CreateRouter(conf *config.Config) (h *Handler, cleanup func()) {
 	h.Routes()
 
 	// Router setup
-	h.Router.PanicHandler = PanicHandler()
-	h.Router.NotFound = http.HandlerFunc(h.NotFound)
+	h.Router.PanicHandler = middleware.PanicHandler()
+	h.Router.NotFound = middleware.NotFound()
 
 	// Middleware
 	SetupMiddleware(h)
@@ -105,16 +106,16 @@ func SetupMiddleware(h *Handler) {
 	if err != nil {
 		panic(err)
 	}
-	handler = MaxBytesHandler(handler, &MaxBytesHandlerOptions{
+	handler = middleware.MaxBytes(handler, &middleware.MaxBytesOptions{
 		MaxBytes: maxBytes,
 	})
-	handler = LogRequestMiddleware(handler)
-	handler = LoggerMiddleware(handler)
-	handler = AuthMiddleware(handler, &AuthOptions{
-		Skipper: AuthSkipper,
+	handler = middleware.LogRequest(handler)
+	handler = middleware.Logger(handler)
+	handler = middleware.Auth(handler, &middleware.AuthOptions{
+		Skipper: middleware.AuthSkipper,
 	})
 	handler = gziphandler.GzipHandler(handler)
-	handler = RequestIDMiddleware(handler)
+	handler = middleware.RequestID(handler)
 }
 
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
@@ -191,12 +192,6 @@ func (h *Handler) Hello(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
 	response.Write(http.StatusOK, "", w, r,
 		[]byte(fmt.Sprintf("hello, %s!\n", params.ByName("name"))))
-}
-
-func (h *Handler) NotFound(w http.ResponseWriter, r *http.Request) {
-	response.JSON(http.StatusNotFound, w, r, response.Response{
-		Message: fmt.Sprintf("invalid route %v", r.URL.Path),
-	})
 }
 
 func (h *Handler) NotImplemented(w http.ResponseWriter, r *http.Request) {

@@ -1,13 +1,14 @@
 package response_test
 
 import (
-	"github.com/mozey/httprouter-example/pkg/response"
-	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/mozey/httprouter-util/pkg/response"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/require"
 )
 
 func TestJSON(t *testing.T) {
