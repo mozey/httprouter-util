@@ -11,51 +11,25 @@ import (
 	"github.com/NYTimes/gziphandler"
 	"github.com/alecthomas/units"
 	"github.com/julienschmidt/httprouter"
+	"github.com/mozey/httprouter-util/internal/handler"
 	"github.com/mozey/httprouter-util/pkg/config"
 	"github.com/mozey/httprouter-util/pkg/middleware"
 	"github.com/mozey/httprouter-util/pkg/response"
-	"github.com/mozey/logutil"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 )
 
+// Handler for this service
 type Handler struct {
-	Config    *config.Config
-	Router    *httprouter.Router
-	FlushLogs func()
+	*handler.Handler
 }
 
+// NewHandler creates a new top level handler
 func NewHandler(conf *config.Config) (h *Handler) {
 	h = &Handler{}
-	h.Config = conf
-	h.Router = httprouter.New()
-
-	flushLogs, err := SetupLogger(conf)
-	if err != nil {
-		// Continue if setup of persistance log-writer fails
-		log.Error().Stack().Err(err).Msg("")
-		h.FlushLogs = func() {}
-	} else {
-		h.FlushLogs = flushLogs
-	}
-
+	h.Handler = handler.NewHandler(conf)
 	return h
-}
-
-// SetupLogger sets up the logger to write to console and ...
-func SetupLogger(conf *config.Config) (flushLogs func(), err error) {
-	// Main logger must always use console writer,
-	// for readability inside tmux on both dev and prod
-	logutil.SetupLogger(true)
-
-	// TODO Second writer to persist logs?
-	return func() {}, nil
-}
-
-// Cleanup function must be called before the application exits
-func (h *Handler) Cleanup() {
-	h.FlushLogs()
 }
 
 func CreateRouter(conf *config.Config) (h *Handler, cleanup func()) {
@@ -104,10 +78,11 @@ func SetupMiddleware(h *Handler) {
 	handler = cors.Default().Handler(h.Router)
 	maxBytes, err := h.Config.FnMaxBytesKb().Int64()
 	if err != nil {
-		panic(err)
+		log.Error().Stack().Err(err).Msg("")
+		os.Exit(1)
 	}
 	handler = middleware.MaxBytes(handler, &middleware.MaxBytesOptions{
-		MaxBytes: maxBytes,
+		MaxBytes: maxBytes * int64(units.KiB),
 	})
 	handler = middleware.LogRequest(handler)
 	handler = middleware.Logger(handler)
@@ -219,9 +194,14 @@ func main() {
 	// Settings to protect against malicious clients
 	srv.ReadTimeout = 5 * time.Second
 	srv.WriteTimeout = 2 * srv.ReadTimeout
-	srv.MaxHeaderBytes = int(1 * units.KiB)
+	maxBytes, err := h.Config.FnMaxBytesKb().Int64()
+	if err != nil {
+		log.Error().Stack().Err(err).Msg("")
+		os.Exit(1)
+	}
+	srv.MaxHeaderBytes = int(maxBytes * int64(units.KiB))
 
 	log.Info().Msgf("listening on %s", h.Config.Addr())
-	err := errors.WithStack(srv.ListenAndServe())
+	err = errors.WithStack(srv.ListenAndServe())
 	log.Fatal().Stack().Err(err).Msg("") // Don't override err, use empty msg
 }
