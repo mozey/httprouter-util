@@ -114,22 +114,22 @@ Build the client, download it, and print version
 ```bash
 source dev.sh
 
-APP_CLIENT_VERSION=0.1.0 ./scripts/build-client.sh
+VERSION=0.1.0 ./scripts/build-client.sh
 
 ./dist/client -version
 
-curlie "http://localhost:8118/client/download?token=123" -o client
+rm client && curlie "http://localhost:8118/client/download?token=123" -o client
 
-chmod u+x client
-
-./client -version
+# Executing the client might require permissions, on macOS
+#   System Preferences > Security & Privacy > General > Allow Anyway
+chmod u+x ./client && ./client -version
 ```
 
 ### Update client
 
 Create a new build
 ```bash
-APP_CLIENT_VERSION=0.2.0 ./scripts/build-client.sh
+VERSION=0.2.0 ./scripts/build-client.sh
 
 ./dist/client -version
 
@@ -138,14 +138,14 @@ curlie "http://localhost:8118/client/version?token=123"
 
 Update from the server and print new version
 ```bash
-./client -update
+./client -update -token 123
 
 ./client -version
 ```
 
 Running update again prints *"already on the latest version"*
 ```
-./client -update
+./client -update -token 123
 ```
 
 

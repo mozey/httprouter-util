@@ -1,16 +1,27 @@
 package client
 
 import (
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/inconshreveable/go-update"
+	"github.com/mozey/httprouter-util/pkg/config"
+	"github.com/pkg/errors"
 )
 
+type Client struct {
+	Config *config.Config
+}
+
+func NewHandler(conf *config.Config) (c *Client) {
+	c = &Client{}
+	c.Config = conf
+	return c
+}
+
 // https://github.com/inconshreveable/go-update
-func DoUpdate(url string) error {
-	resp, err := http.Get(url)
+func (c *Client) DoUpdate(token string) error {
+	resp, err := http.Get(c.Config.ExecTemplateClientDownloadUrl(token))
 	if err != nil {
 		return err
 	}
@@ -19,36 +30,38 @@ func DoUpdate(url string) error {
 	})()
 	err = update.Apply(resp.Body, update.Options{})
 	if err != nil {
-		// error handling
+		return errors.WithStack(err)
 	}
-	return err
+	return nil
 }
 
-func GetLatestVersion() (latestVersion string, err error) {
+func (c *Client) GetLatestVersion(token string) (
+	latestVersion string, err error) {
+
 	client := &http.Client{}
 
 	req, err := http.NewRequest(
-		"GET", "http://localhost:8118/client/version?token=123", nil)
+		"GET", c.Config.ExecTemplateClientVersionUrl(token), nil)
 	if err != nil {
-		return latestVersion, err
+		return latestVersion, errors.WithStack(err)
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return latestVersion, err
+		return latestVersion, errors.WithStack(err)
 	}
 	defer (func() {
 		_ = resp.Body.Close()
 	})()
 
 	if resp.StatusCode != http.StatusOK {
-		return latestVersion, fmt.Errorf(
+		return latestVersion, errors.Errorf(
 			"%v %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return latestVersion, err
+		return latestVersion, errors.WithStack(err)
 	}
 
 	return string(b), nil

@@ -3,5 +3,9 @@
     "APP_EXE": "dist/app",
     "APP_MAX_BYTES_KB": "1",
     "APP_MAX_PAYLOAD_MB": "10",
-    "APP_NAME": "httprouter-util"
+    "APP_NAME": "httprouter-util",
+    "APP_TEMPLATE_CLIENT_DOWNLOAD_URL": "http://localhost:8118/client/download?token={{.Token}}",
+    "APP_TEMPLATE_CLIENT_VERSION_URL": "http://localhost:8118/client/version?token={{.Token}}",
+    "APP_VERSION": "",
+    "AWS_PROFILE": "aws-local"
 }

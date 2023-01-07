@@ -58,6 +58,38 @@ func (c *Config) FnName() *Fn {
 	return &fn
 }
 
+// FnTemplateClientDownloadUrl sets the function input to the value of APP_TEMPLATE_CLIENT_DOWNLOAD_URL
+func (c *Config) FnTemplateClientDownloadUrl() *Fn {
+	fn := Fn{}
+	fn.input = c.templateClientDownloadUrl
+	fn.output = ""
+	return &fn
+}
+
+// FnTemplateClientVersionUrl sets the function input to the value of APP_TEMPLATE_CLIENT_VERSION_URL
+func (c *Config) FnTemplateClientVersionUrl() *Fn {
+	fn := Fn{}
+	fn.input = c.templateClientVersionUrl
+	fn.output = ""
+	return &fn
+}
+
+// FnVersion sets the function input to the value of APP_VERSION
+func (c *Config) FnVersion() *Fn {
+	fn := Fn{}
+	fn.input = c.version
+	fn.output = ""
+	return &fn
+}
+
+// FnAwsProfile sets the function input to the value of AWS_PROFILE
+func (c *Config) FnAwsProfile() *Fn {
+	fn := Fn{}
+	fn.input = c.awsProfile
+	fn.output = ""
+	return &fn
+}
+
 // FnDir sets the function input to the value of APP_DIR
 func (c *Config) FnDir() *Fn {
 	fn := Fn{}

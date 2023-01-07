@@ -27,17 +27,33 @@ var maxPayloadMb string
 // APP_NAME
 var name string
 
+// APP_TEMPLATE_CLIENT_DOWNLOAD_URL
+var templateClientDownloadUrl string
+
+// APP_TEMPLATE_CLIENT_VERSION_URL
+var templateClientVersionUrl string
+
+// APP_VERSION
+var version string
+
+// AWS_PROFILE
+var awsProfile string
+
 // APP_DIR
 var dir string
 
 // Config fields correspond to config file keys less the prefix
 type Config struct {
-	addr         string // APP_ADDR
-	exe          string // APP_EXE
-	maxBytesKb   string // APP_MAX_BYTES_KB
-	maxPayloadMb string // APP_MAX_PAYLOAD_MB
-	name         string // APP_NAME
-	dir          string // APP_DIR
+	addr                      string // APP_ADDR
+	exe                       string // APP_EXE
+	maxBytesKb                string // APP_MAX_BYTES_KB
+	maxPayloadMb              string // APP_MAX_PAYLOAD_MB
+	name                      string // APP_NAME
+	templateClientDownloadUrl string // APP_TEMPLATE_CLIENT_DOWNLOAD_URL
+	templateClientVersionUrl  string // APP_TEMPLATE_CLIENT_VERSION_URL
+	version                   string // APP_VERSION
+	awsProfile                string // AWS_PROFILE
+	dir                       string // APP_DIR
 }
 
 // Addr is APP_ADDR
@@ -63,6 +79,26 @@ func (c *Config) MaxPayloadMb() string {
 // Name is APP_NAME
 func (c *Config) Name() string {
 	return c.name
+}
+
+// TemplateClientDownloadUrl is APP_TEMPLATE_CLIENT_DOWNLOAD_URL
+func (c *Config) TemplateClientDownloadUrl() string {
+	return c.templateClientDownloadUrl
+}
+
+// TemplateClientVersionUrl is APP_TEMPLATE_CLIENT_VERSION_URL
+func (c *Config) TemplateClientVersionUrl() string {
+	return c.templateClientVersionUrl
+}
+
+// Version is APP_VERSION
+func (c *Config) Version() string {
+	return c.version
+}
+
+// AwsProfile is AWS_PROFILE
+func (c *Config) AwsProfile() string {
+	return c.awsProfile
 }
 
 // Dir is APP_DIR
@@ -93,6 +129,26 @@ func (c *Config) SetMaxPayloadMb(v string) {
 // SetName overrides the value of name
 func (c *Config) SetName(v string) {
 	c.name = v
+}
+
+// SetTemplateClientDownloadUrl overrides the value of templateClientDownloadUrl
+func (c *Config) SetTemplateClientDownloadUrl(v string) {
+	c.templateClientDownloadUrl = v
+}
+
+// SetTemplateClientVersionUrl overrides the value of templateClientVersionUrl
+func (c *Config) SetTemplateClientVersionUrl(v string) {
+	c.templateClientVersionUrl = v
+}
+
+// SetVersion overrides the value of version
+func (c *Config) SetVersion(v string) {
+	c.version = v
+}
+
+// SetAwsProfile overrides the value of awsProfile
+func (c *Config) SetAwsProfile(v string) {
+	c.awsProfile = v
 }
 
 // SetDir overrides the value of dir
@@ -135,6 +191,22 @@ func SetVars(conf *Config) {
 		conf.name = name
 	}
 
+	if templateClientDownloadUrl != "" {
+		conf.templateClientDownloadUrl = templateClientDownloadUrl
+	}
+
+	if templateClientVersionUrl != "" {
+		conf.templateClientVersionUrl = templateClientVersionUrl
+	}
+
+	if version != "" {
+		conf.version = version
+	}
+
+	if awsProfile != "" {
+		conf.awsProfile = awsProfile
+	}
+
 	if dir != "" {
 		conf.dir = dir
 	}
@@ -170,6 +242,26 @@ func SetEnv(conf *Config) {
 		conf.name = v
 	}
 
+	v = os.Getenv("APP_TEMPLATE_CLIENT_DOWNLOAD_URL")
+	if v != "" {
+		conf.templateClientDownloadUrl = v
+	}
+
+	v = os.Getenv("APP_TEMPLATE_CLIENT_VERSION_URL")
+	if v != "" {
+		conf.templateClientVersionUrl = v
+	}
+
+	v = os.Getenv("APP_VERSION")
+	if v != "" {
+		conf.version = v
+	}
+
+	v = os.Getenv("AWS_PROFILE")
+	if v != "" {
+		conf.awsProfile = v
+	}
+
 	v = os.Getenv("APP_DIR")
 	if v != "" {
 		conf.dir = v
@@ -190,6 +282,14 @@ func (c *Config) GetMap() map[string]string {
 	m["APP_MAX_PAYLOAD_MB"] = c.maxPayloadMb
 
 	m["APP_NAME"] = c.name
+
+	m["APP_TEMPLATE_CLIENT_DOWNLOAD_URL"] = c.templateClientDownloadUrl
+
+	m["APP_TEMPLATE_CLIENT_VERSION_URL"] = c.templateClientVersionUrl
+
+	m["APP_VERSION"] = c.version
+
+	m["AWS_PROFILE"] = c.awsProfile
 
 	m["APP_DIR"] = c.dir
 
