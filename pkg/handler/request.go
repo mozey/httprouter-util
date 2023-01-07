@@ -11,7 +11,7 @@ import (
 
 // GetBody from http.Request
 func (h *Handler) GetBody(r *http.Request) (body []byte, err error) {
-	if r.Body == nil {
+	if r.Body == nil || r.ContentLength == 0 {
 		body = []byte("")
 	} else {
 		maxPayload, err := h.Config.FnMaxPayloadMb().Int64()
