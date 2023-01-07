@@ -96,10 +96,7 @@ gotest -v ./... -run TestMaxHeaderBytes
 
 ### Proxy
 
-**TODO** Proxy request to external service?
-[http://localhost:8118/proxy](http://localhost:8118/proxy)
-
-However, a better architecture is to use something like [Caddy](https://github.com/caddyserver/caddy) as a HTTPS endpoint, API gateway, and reverse proxy. The Caddyfile for configuring this is quite simple, see [#6](https://github.com/mozey/httprouter-util/issues/6)
+[Caddy](https://github.com/caddyserver/caddy) is used as a HTTPS endpoint, API gateway, and reverse proxy. See [#6](https://github.com/mozey/httprouter-util/issues/6) for Caddyfile configuration
 
 ### Services
 

@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mozey/httprouter-util/pkg/response"
+	"github.com/mozey/httprouter-util/pkg/handler"
+	"github.com/mozey/httprouter-util/pkg/share"
 )
 
 // AuthSkipper lists endpoints that do not require validation,
@@ -13,10 +14,6 @@ func AuthSkipper(r *http.Request) bool {
 	path := r.URL.Path
 
 	// Rewrite path to skip routes starting with the listed prefixes
-	if strings.HasPrefix(path, "/proxy") {
-		// Let the proxy endpoint will do it's own auth
-		path = "/proxy"
-	}
 	if strings.HasPrefix(path, "/www") {
 		// Static files are public
 		path = "/www"
@@ -28,14 +25,14 @@ func AuthSkipper(r *http.Request) bool {
 		"/index.html",
 		"/favicon.ico",
 		"/panic",
-		"/www",
-		"/proxy":
+		"/www":
 		return true
 	}
 	return false
 }
 
 type AuthOptions struct {
+	H       *handler.Handler
 	Skipper func(r *http.Request) bool
 }
 
@@ -56,16 +53,16 @@ func Auth(next http.Handler, o *AuthOptions) http.Handler {
 		// Authenticate
 		token := r.URL.Query().Get("token")
 		if token != "123" {
-			resp := response.ErrResponse{
+			resp := share.ErrResponse{
 				Message: "invalid token",
 			}
 			requestID, ok :=
-				r.Context().Value(response.HeaderXRequestID).(string)
+				r.Context().Value(share.HeaderXRequestID).(string)
 			if ok {
 				// Set request_id from context
 				resp.RequestID = requestID
 			}
-			response.JSON(http.StatusBadRequest, w, r, resp)
+			o.H.JSON(http.StatusBadRequest, w, r, resp)
 			return
 		}
 

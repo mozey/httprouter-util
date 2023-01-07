@@ -52,9 +52,6 @@ func TestGzipHandler(t *testing.T) {
 	u := url.URL{
 		Path: "/www/temple.jpg",
 	}
-	q := u.Query()
-	q.Set("token", "123")
-	u.RawQuery = q.Encode()
 	req, err := http.NewRequest("GET", u.String(), nil)
 	require.NoError(t, err)
 	req.Header.Add("Accept-Encoding", "gzip")

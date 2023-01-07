@@ -21,6 +21,9 @@ var exe string
 // APP_MAX_BYTES_KB
 var maxBytesKb string
 
+// APP_MAX_PAYLOAD_MB
+var maxPayloadMb string
+
 // APP_NAME
 var name string
 
@@ -29,11 +32,12 @@ var dir string
 
 // Config fields correspond to config file keys less the prefix
 type Config struct {
-	addr       string // APP_ADDR
-	exe        string // APP_EXE
-	maxBytesKb string // APP_MAX_BYTES_KB
-	name       string // APP_NAME
-	dir        string // APP_DIR
+	addr         string // APP_ADDR
+	exe          string // APP_EXE
+	maxBytesKb   string // APP_MAX_BYTES_KB
+	maxPayloadMb string // APP_MAX_PAYLOAD_MB
+	name         string // APP_NAME
+	dir          string // APP_DIR
 }
 
 // Addr is APP_ADDR
@@ -49,6 +53,11 @@ func (c *Config) Exe() string {
 // MaxBytesKb is APP_MAX_BYTES_KB
 func (c *Config) MaxBytesKb() string {
 	return c.maxBytesKb
+}
+
+// MaxPayloadMb is APP_MAX_PAYLOAD_MB
+func (c *Config) MaxPayloadMb() string {
+	return c.maxPayloadMb
 }
 
 // Name is APP_NAME
@@ -74,6 +83,11 @@ func (c *Config) SetExe(v string) {
 // SetMaxBytesKb overrides the value of maxBytesKb
 func (c *Config) SetMaxBytesKb(v string) {
 	c.maxBytesKb = v
+}
+
+// SetMaxPayloadMb overrides the value of maxPayloadMb
+func (c *Config) SetMaxPayloadMb(v string) {
+	c.maxPayloadMb = v
 }
 
 // SetName overrides the value of name
@@ -113,6 +127,10 @@ func SetVars(conf *Config) {
 		conf.maxBytesKb = maxBytesKb
 	}
 
+	if maxPayloadMb != "" {
+		conf.maxPayloadMb = maxPayloadMb
+	}
+
 	if name != "" {
 		conf.name = name
 	}
@@ -142,6 +160,11 @@ func SetEnv(conf *Config) {
 		conf.maxBytesKb = v
 	}
 
+	v = os.Getenv("APP_MAX_PAYLOAD_MB")
+	if v != "" {
+		conf.maxPayloadMb = v
+	}
+
 	v = os.Getenv("APP_NAME")
 	if v != "" {
 		conf.name = v
@@ -163,6 +186,8 @@ func (c *Config) GetMap() map[string]string {
 	m["APP_EXE"] = c.exe
 
 	m["APP_MAX_BYTES_KB"] = c.maxBytesKb
+
+	m["APP_MAX_PAYLOAD_MB"] = c.maxPayloadMb
 
 	m["APP_NAME"] = c.name
 

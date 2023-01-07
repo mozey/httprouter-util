@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/mozey/httprouter-util/pkg/response"
+	"github.com/mozey/httprouter-util/pkg/share"
 	"github.com/rs/zerolog/log"
 	"github.com/segmentio/ksuid"
 )
@@ -14,7 +14,7 @@ func RequestID(next http.Handler) http.Handler {
 		ctx := r.Context()
 
 		// Use existing header if available.
-		requestID := r.Header.Get(response.HeaderXRequestID)
+		requestID := r.Header.Get(share.HeaderXRequestID)
 
 		if requestID == "" {
 			// Generate new id
@@ -27,10 +27,10 @@ func RequestID(next http.Handler) http.Handler {
 		}
 
 		// Set header
-		w.Header().Set(response.HeaderXRequestID, requestID)
+		w.Header().Set(share.HeaderXRequestID, requestID)
 
 		// Also set on context
-		ctx = context.WithValue(ctx, response.HeaderXRequestID, requestID)
+		ctx = context.WithValue(ctx, share.HeaderXRequestID, requestID)
 
 		// Logger must be set on context for all requests
 		// otherwise level is set to "disabled"
@@ -38,7 +38,7 @@ func RequestID(next http.Handler) http.Handler {
 		// With auth failures the Logger middleware won't run,
 		// initialise logger on the ctx here in case that happens
 		logger := log.With().
-			Str("request_id", w.Header().Get(response.HeaderXRequestID)).
+			Str("request_id", w.Header().Get(share.HeaderXRequestID)).
 			Logger()
 		ctx = logger.WithContext(ctx)
 

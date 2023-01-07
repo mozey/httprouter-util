@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,16 +11,16 @@ import (
 	"github.com/NYTimes/gziphandler"
 	"github.com/alecthomas/units"
 	"github.com/julienschmidt/httprouter"
-	"github.com/mozey/httprouter-util/internal/handler"
 	"github.com/mozey/httprouter-util/pkg/config"
+	"github.com/mozey/httprouter-util/pkg/handler"
 	"github.com/mozey/httprouter-util/pkg/middleware"
-	"github.com/mozey/httprouter-util/pkg/response"
+	"github.com/mozey/httprouter-util/pkg/share"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/rs/zerolog/log"
 )
 
-// Handler for this main app service
+// Handler for this service
 type Handler struct {
 	*handler.Handler
 }
@@ -38,8 +39,8 @@ func CreateRouter(conf *config.Config) (h *Handler, cleanup func()) {
 	h.Routes()
 
 	// Router setup
-	h.Router.PanicHandler = middleware.PanicHandler()
-	h.Router.NotFound = middleware.NotFound()
+	h.Router.PanicHandler = middleware.PanicHandler(h.Handler)
+	h.Router.NotFound = middleware.NotFound(h.Handler)
 
 	// Middleware
 	SetupMiddleware(h)
@@ -73,42 +74,42 @@ func (h *Handler) Routes() {
 // SetupMiddleware configures the middleware given a route handler
 func SetupMiddleware(h *Handler) {
 	// Middleware
-	var handler http.Handler = h.Router
+	var httpHandler http.Handler = h.Router
 	// WARNING Allows all origins
-	handler = cors.Default().Handler(h.Router)
+	httpHandler = cors.Default().Handler(h.Router)
 	maxBytes, err := h.Config.FnMaxBytesKb().Int64()
 	if err != nil {
 		log.Error().Stack().Err(err).Msg("")
 		os.Exit(1)
 	}
-	handler = middleware.MaxBytes(handler, &middleware.MaxBytesOptions{
+	httpHandler = middleware.MaxBytes(httpHandler, &middleware.MaxBytesOptions{
 		MaxBytes: maxBytes * int64(units.KiB),
 	})
-	handler = middleware.LogRequest(handler)
-	handler = middleware.Logger(handler)
-	handler = middleware.Auth(handler, &middleware.AuthOptions{
+	httpHandler = middleware.LogRequest(httpHandler)
+	httpHandler = middleware.Logger(httpHandler)
+	httpHandler = middleware.Auth(httpHandler, &middleware.AuthOptions{
 		Skipper: middleware.AuthSkipper,
 	})
-	handler = gziphandler.GzipHandler(handler)
-	handler = middleware.RequestID(handler)
+	httpHandler = gziphandler.GzipHandler(httpHandler)
+	httpHandler = middleware.RequestID(httpHandler)
 
-	h.HTTPHandler = handler
+	h.HTTPHandler = httpHandler
 }
 
 func (h *Handler) Index(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(filepath.Join(h.Config.Dir(), "www", "index.html"))
 	if err != nil {
-		response.JSON(http.StatusInternalServerError, w, r,
+		h.JSON(http.StatusInternalServerError, w, r,
 			errors.WithStack(err))
 		return
 	}
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		response.JSON(http.StatusInternalServerError, w, r,
+		h.JSON(http.StatusInternalServerError, w, r,
 			errors.WithStack(err))
 		return
 	}
-	response.Write(http.StatusOK, "", w, r, b)
+	h.Write(http.StatusOK, "", w, r, b)
 }
 
 func (h *Handler) Favicon(w http.ResponseWriter, r *http.Request) {
@@ -117,15 +118,26 @@ func (h *Handler) Favicon(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) API(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	// Read body
-	_, err := ioutil.ReadAll(r.Body)
+	b, err := h.GetBody(r)
 	if err != nil {
-		response.JSON(
-			http.StatusInternalServerError, w, r, errors.WithStack(err))
+		h.JSON(http.StatusInternalServerError, w, r, err)
 		return
 	}
+	if len(b) > 0 {
+		// Body must be valid JSON
+		var data map[string]interface{}
+		err = json.Unmarshal(b, &data)
+		if err != nil {
+			h.JSON(http.StatusInternalServerError, w, r, errors.WithStack(err))
+			return
+		}
+		log.Ctx(ctx).Info().Interface("body", data).Msg("")
+	}
 
-	response.JSON(http.StatusOK, w, r, response.Response{
+	h.JSON(http.StatusOK, w, r, share.Response{
 		Message: "Welcome",
 	})
 }
@@ -134,17 +146,17 @@ func (h *Handler) API(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ClientVersion(w http.ResponseWriter, r *http.Request) {
 	f, err := os.Open(filepath.Join(h.Config.Dir(), "dist", "client.version"))
 	if err != nil {
-		response.JSON(http.StatusInternalServerError, w, r,
+		h.JSON(http.StatusInternalServerError, w, r,
 			errors.WithStack(err))
 		return
 	}
 	b, err := ioutil.ReadAll(f)
 	if err != nil {
-		response.JSON(http.StatusInternalServerError, w, r,
+		h.JSON(http.StatusInternalServerError, w, r,
 			errors.WithStack(err))
 		return
 	}
-	response.Write(http.StatusOK, "", w, r, b)
+	h.Write(http.StatusOK, "", w, r, b)
 }
 
 // ClientDownload serves the latest client
@@ -159,11 +171,11 @@ func (h *Handler) Panic(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Hello(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
-	response.Write(http.StatusOK, "", w, r,
+	h.Write(http.StatusOK, "", w, r,
 		[]byte(fmt.Sprintf("hello, %s!\n", params.ByName("name"))))
 }
 
 func (h *Handler) NotImplemented(w http.ResponseWriter, r *http.Request) {
-	response.JSON(http.StatusNotImplemented, w, r,
+	h.JSON(http.StatusNotImplemented, w, r,
 		errors.Errorf(http.StatusText(http.StatusNotImplemented)))
 }

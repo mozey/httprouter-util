@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/mozey/httprouter-util/pkg/response"
+	"github.com/mozey/httprouter-util/pkg/share"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -18,7 +18,7 @@ func Logger(next http.Handler) http.Handler {
 
 		// Set request_id on logger context
 		requestID, ok :=
-			r.Context().Value(response.HeaderXRequestID).(string)
+			r.Context().Value(share.HeaderXRequestID).(string)
 		if ok {
 			logger = log.With().
 				Str("request_id", requestID).

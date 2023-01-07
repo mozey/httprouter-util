@@ -1,4 +1,4 @@
-package response
+package handler
 
 import (
 	"encoding/json"
@@ -7,27 +7,14 @@ import (
 	"net/url"
 	"regexp"
 
+	"github.com/mozey/httprouter-util/pkg/share"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
-type Response struct {
-	Message string `json:"message"`
-}
-
-type ErrResponse struct {
-	Message   string `json:"message"`
-	RequestID string `json:"request_id"`
-}
-
-type JSONRaw string
-
-// HeaderXRequestID ...
-const HeaderXRequestID = "X-Request-ID"
-
 // JSON can be used by route handlers to respond to requests
-func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
+func (h *Handler) JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 	ctx := r.Context()
 
 	// Default message
@@ -48,12 +35,12 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 	var err error
 	indent := "    "
 	switch v := resp.(type) {
-	case JSONRaw:
+	case share.JSONRaw:
 		respStr = resp
 
 	case string:
 		msg = v
-		b, err = json.MarshalIndent(Response{Message: msg}, "", indent)
+		b, err = json.MarshalIndent(share.Response{Message: msg}, "", indent)
 		if err != nil {
 			log.Ctx(ctx).Error().Stack().Err(errors.WithStack(err)).Msg("")
 			respStr = err.Error()
@@ -69,8 +56,8 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 			// if not then override code
 			code = http.StatusInternalServerError
 		}
-		errResp := ErrResponse{Message: msg}
-		requestID, ok := r.Context().Value(HeaderXRequestID).(string)
+		errResp := share.ErrResponse{Message: msg}
+		requestID, ok := r.Context().Value(share.HeaderXRequestID).(string)
 		if ok {
 			errResp.RequestID = requestID
 		}
@@ -91,7 +78,7 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 		}
 		// Rather than using reflection or type casting,
 		// unmarshal the response to determine if a message property was set
-		r := Response{}
+		r := share.Response{}
 		err := json.Unmarshal(b, &r)
 		if err == nil {
 			if r.Message != "" {
@@ -138,7 +125,7 @@ func JSON(code int, w http.ResponseWriter, r *http.Request, resp interface{}) {
 }
 
 // Write response bytes with specified code and content type headers
-func Write(code int, contentType string, w http.ResponseWriter, r *http.Request, b []byte) {
+func (h *Handler) Write(code int, contentType string, w http.ResponseWriter, r *http.Request, b []byte) {
 	ctx := r.Context()
 
 	if contentType == "" {

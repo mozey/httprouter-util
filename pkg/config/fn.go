@@ -42,6 +42,14 @@ func (c *Config) FnMaxBytesKb() *Fn {
 	return &fn
 }
 
+// FnMaxPayloadMb sets the function input to the value of APP_MAX_PAYLOAD_MB
+func (c *Config) FnMaxPayloadMb() *Fn {
+	fn := Fn{}
+	fn.input = c.maxPayloadMb
+	fn.output = ""
+	return &fn
+}
+
 // FnName sets the function input to the value of APP_NAME
 func (c *Config) FnName() *Fn {
 	fn := Fn{}
