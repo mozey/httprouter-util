@@ -1,93 +1,92 @@
 package main
 
 import (
+	"crypto"
 	"flag"
 	"fmt"
-	"github.com/inconshreveable/go-update"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
+
+	"github.com/mozey/httprouter-util/pkg/client"
+	"github.com/mozey/httprouter-util/pkg/config"
+	"github.com/mozey/logutil"
+	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
-var version string
-
-// https://github.com/inconshreveable/go-update
-func doUpdate(url string) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer (func() {
-		_ = resp.Body.Close()
-	})()
-	err = update.Apply(resp.Body, update.Options{})
-	if err != nil {
-		// error handling
-	}
-	return err
-}
-
-func getLatestVersion() (latestVersion string, err error) {
-	client := &http.Client{}
-
-	req, err := http.NewRequest(
-		"GET", "http://localhost:8118/client/version?token=123", nil)
-	if err != nil {
-		return latestVersion, err
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return latestVersion, err
-	}
-	defer (func() {
-		_ = resp.Body.Close()
-	})()
-
-	if resp.StatusCode != http.StatusOK {
-		return latestVersion, fmt.Errorf(
-			"%v %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return latestVersion, err
-	}
-
-	return string(b), nil
-}
+// configBase64 must be compiled into executable with ldflags,
+// if it is not set then read config from env
+var configBase64 string
 
 func main() {
+	// Make console logs human readable
+	logutil.SetupLogger(true)
+
+	// Config
+	if configBase64 != "" {
+		err := config.SetEnvBase64(configBase64)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg("")
+			os.Exit(1)
+		}
+	}
+	conf := config.New()
+
+	// Flags
 	versionFlag := flag.Bool(
 		"version", false, "Print version")
 	updateFlag := flag.Bool(
 		"update", false, "Request an update from the server")
-
+	tokenFlag := flag.String(
+		"token", "", "Auth token")
+	checksumFlag := flag.String(
+		"checksum", "", "Print checksum for specified path")
 	flag.Parse()
 
+	c := client.NewHandler(conf)
+
 	if *versionFlag {
-		fmt.Println(version)
+		fmt.Println(conf.Version())
 
 	} else if *updateFlag {
-		latestVersion, err := getLatestVersion()
-		fmt.Println(fmt.Sprintf("latest version is %s", latestVersion))
+		clientVersion, err := c.GetLatestVersion(*tokenFlag)
+		fmt.Println(fmt.Sprintf("latest version is %s", clientVersion.Version))
 		if err != nil {
-			fmt.Println(err)
+			log.Error().Stack().Err(err).Msg("")
 			os.Exit(1)
 		}
-		latestVersion = strings.TrimSpace(
-			strings.ReplaceAll(latestVersion, "\n", ""))
-		if latestVersion != version {
+		if clientVersion.Version != conf.Version() {
 			fmt.Println("updating...")
-			err := doUpdate("http://localhost:8118/client/download?token=123")
+			err := c.DoUpdate(*tokenFlag, clientVersion.Checksum)
 			if err != nil {
-				fmt.Println(err)
+				log.Error().Stack().Err(err).Msg("")
 				os.Exit(1)
 			}
 		} else {
 			fmt.Println("already on the latest version")
 		}
+
+	} else if strings.TrimSpace(*checksumFlag) != "" {
+		payload, err := ioutil.ReadFile(*checksumFlag)
+		if err != nil {
+			log.Error().Stack().Err(errors.WithStack(err)).Msg("")
+			os.Exit(1)
+		}
+
+		// Must match the hash function options passed to the go-update lib, see
+		// vendor/github.com/inconshreveable/go-update/apply.go
+		h := crypto.SHA256
+		hash := h.New()
+		_, err = hash.Write(payload)
+		if err != nil {
+			log.Error().Stack().Err(err).Msg("")
+			os.Exit(1)
+		}
+
+		b := hash.Sum([]byte{})
+		// Print hash bytes as hexadecimal (base 16), see https://pkg.go.dev/fmt
+		fmt.Printf("%x\n", b)
 
 	} else {
 		flag.Usage()

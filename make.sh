@@ -34,7 +34,7 @@ depends() {
       }
 
   elif [[ ${1} == "watcher" ]]; then
-    "${GOPATH}"/bin/watcher -version >/dev/null 2>&1 ||
+    watcher -version >/dev/null 2>&1 ||
       {
         echo "Install https://github.com/mozey/watcher"
         exit 1
@@ -186,7 +186,7 @@ app() {
   depends watcher
   app_restart
   APP_DIR=${APP_DIR}
-  "${GOPATH}"/bin/watcher -d 1500 -r -dir "" \
+  watcher -d 1500 -r -dir "" \
     --include ".*.go$" \
     --excludeDir "${APP_DIR}/cmd.*" \
     --excludeDir "${APP_DIR}/dist.*" \

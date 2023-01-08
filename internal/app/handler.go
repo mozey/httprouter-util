@@ -144,7 +144,7 @@ func (h *Handler) API(w http.ResponseWriter, r *http.Request) {
 
 // ClientVersion prints the latest client version
 func (h *Handler) ClientVersion(w http.ResponseWriter, r *http.Request) {
-	f, err := os.Open(filepath.Join(h.Config.Dir(), "dist", "client.version"))
+	f, err := os.Open(filepath.Join(h.Config.Dir(), "dist", "client.json"))
 	if err != nil {
 		h.JSON(http.StatusInternalServerError, w, r,
 			errors.WithStack(err))
@@ -156,7 +156,16 @@ func (h *Handler) ClientVersion(w http.ResponseWriter, r *http.Request) {
 			errors.WithStack(err))
 		return
 	}
-	h.Write(http.StatusOK, "", w, r, b)
+
+	var clientVersion share.ClientVersion
+	err = json.Unmarshal(b, &clientVersion)
+	if err != nil {
+		h.JSON(http.StatusInternalServerError, w, r,
+			errors.WithStack(err))
+		return
+	}
+
+	h.JSON(http.StatusOK, w, r, clientVersion)
 }
 
 // ClientDownload serves the latest client
