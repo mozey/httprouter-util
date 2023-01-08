@@ -10,3 +10,8 @@ type ErrResponse struct {
 }
 
 type JSONRaw string
+
+type ClientVersion struct {
+	Version  string `json:"version"`
+	Checksum string `json:"checksum"`
+}

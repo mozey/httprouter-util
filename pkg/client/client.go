@@ -1,11 +1,17 @@
 package client
 
 import (
+	"crypto"
+	"encoding/hex"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/inconshreveable/go-update"
 	"github.com/mozey/httprouter-util/pkg/config"
+	"github.com/mozey/httprouter-util/pkg/share"
 	"github.com/pkg/errors"
 )
 
@@ -20,7 +26,13 @@ func NewHandler(conf *config.Config) (c *Client) {
 }
 
 // https://github.com/inconshreveable/go-update
-func (c *Client) DoUpdate(token string) error {
+func (c *Client) DoUpdate(token, checksumHex string) error {
+	checksumHex = strings.ReplaceAll(checksumHex, "\n", "")
+	checksumBytes, err := hex.DecodeString(checksumHex)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	resp, err := http.Get(c.Config.ExecTemplateClientDownloadUrl(token))
 	if err != nil {
 		return err
@@ -28,7 +40,11 @@ func (c *Client) DoUpdate(token string) error {
 	defer (func() {
 		_ = resp.Body.Close()
 	})()
-	err = update.Apply(resp.Body, update.Options{})
+	err = update.Apply(resp.Body, update.Options{
+		Hash:       crypto.SHA256,
+		Checksum:   checksumBytes,
+		TargetMode: os.FileMode(0755),
+	})
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -36,33 +52,38 @@ func (c *Client) DoUpdate(token string) error {
 }
 
 func (c *Client) GetLatestVersion(token string) (
-	latestVersion string, err error) {
+	clientVersion share.ClientVersion, err error) {
 
 	client := &http.Client{}
 
 	req, err := http.NewRequest(
 		"GET", c.Config.ExecTemplateClientVersionUrl(token), nil)
 	if err != nil {
-		return latestVersion, errors.WithStack(err)
+		return clientVersion, errors.WithStack(err)
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return latestVersion, errors.WithStack(err)
+		return clientVersion, errors.WithStack(err)
 	}
 	defer (func() {
 		_ = resp.Body.Close()
 	})()
 
 	if resp.StatusCode != http.StatusOK {
-		return latestVersion, errors.Errorf(
+		return clientVersion, errors.Errorf(
 			"%v %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return latestVersion, errors.WithStack(err)
+		return clientVersion, errors.WithStack(err)
 	}
 
-	return string(b), nil
+	err = json.Unmarshal(b, &clientVersion)
+	if err != nil {
+		return clientVersion, errors.WithStack(err)
+	}
+
+	return clientVersion, nil
 }

@@ -118,7 +118,7 @@ VERSION=0.1.0 ./scripts/build-client.sh
 
 ./dist/client -version
 
-rm client && curlie "http://localhost:8118/client/download?token=123" -o client
+rm -f client && curlie "http://localhost:8118/client/download?token=123" -o client
 
 # Executing the client might require permissions, on macOS
 #   System Preferences > Security & Privacy > General > Allow Anyway
